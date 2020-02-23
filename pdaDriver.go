@@ -20,9 +20,11 @@ func main(){
 	check(err)
 
 	pda := new(PdaProcessor)
-	pda.Open(string(jsonText))
-
-	fmt.Println(pda)
+	if pda.Open(string(jsonText)){
+		fmt.Println(pda)
+	} else {
+		fmt.Println("Error: could not open json spec")
+	}
 }
 
 // A function that calls panic if it detects an error.
