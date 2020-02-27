@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"io/ioutil"
+	"bufio"
+	"strings"
 )
 
 // The main method of the pdaDriver program. This will check the command-line args, import the json,
@@ -22,14 +24,53 @@ func main(){
 	pda := new(PdaProcessor)
 	if pda.Open(string(jsonText)){
 		fmt.Println(pda)
+
+		reader := bufio.NewReader(os.Stdin)
+
+		fmt.Println("Enter input text: ")
+
+		inputText, _ := reader.ReadString('\n')
+		inputText = strings.Replace(inputText, string('\n'), "", -1)
+		
+		// Loop until validateTokens returns true.
+		for !validateTokens(strings.Replace(inputText, string('\n'), "", -1), pda.InputAlphabet) {
+			fmt.Println("Error: input text invalid. Input must contain only the following: ", 
+				pda.InputAlphabet)
+			fmt.Println("Enter input text: ")
+			
+			inputText, _ = reader.ReadString('\n')
+			inputText = strings.Replace(inputText, string('\n'), "", -1)
+		}
+
+		fmt.Println("SUCCESS! Your input, " + inputText + ", is accepted.")
+
 	} else {
 		fmt.Println("Error: could not open json spec")
 	}
 }
 
-// A function that calls panic if it detects an error.
+// Calls panic if it detects an error.
 func check(e error){
 	if e != nil{
 		panic(e)
 	}
+}
+
+// Checks input text to see if the provided tokens match the pda's InputAlphabet
+func validateTokens(inputText string, inputAlphabet []string)(bool){
+
+	for _, c := range inputText {
+
+		exists := false
+		
+		for _, s := range inputAlphabet {
+			if string(c) == s {
+				exists = true
+			}
+		}
+		if !exists {
+			return false
+		}
+	}
+	return true
 }
