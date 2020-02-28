@@ -30,19 +30,27 @@ func main(){
 		fmt.Println("Enter input text: ")
 
 		inputText, _ := reader.ReadString('\n')
-		inputText = strings.Replace(inputText, string('\n'), "", -1)
+		inputTokens := strings.Split(strings.Replace(inputText, string('\n'), "", -1), " ")
 		
 		// Loop until validateTokens returns true.
-		for !validateTokens(strings.Replace(inputText, string('\n'), "", -1), pda.InputAlphabet) {
+		for !validateTokens(inputTokens, pda.InputAlphabet) {
 			fmt.Println("Error: input text invalid. Input must contain only the following: ", 
 				pda.InputAlphabet)
 			fmt.Println("Enter input text: ")
 			
 			inputText, _ = reader.ReadString('\n')
-			inputText = strings.Replace(inputText, string('\n'), "", -1)
+			inputTokens = strings.Split(strings.Replace(inputText, string('\n'), "", -1), " ")
 		}
 
-		fmt.Println("SUCCESS! Your input, " + inputText + ", is accepted.")
+		fmt.Println("SUCCESS! Your input is accepted: ", inputTokens)
+
+		// Iterate over all input tokens. First, check the current state, input token and top token 
+		// then determine whether we can take a transition. If we can make a transition WITHOUT
+		// consuming a token, then we will do that. Otherwise we consume a token and make the
+		// appropriate transition.
+		for _, t := range inputTokens {
+			fmt.Println(t)
+		}
 
 	} else {
 		fmt.Println("Error: could not open json spec")
@@ -57,14 +65,14 @@ func check(e error){
 }
 
 // Checks input text to see if the provided tokens match the pda's InputAlphabet
-func validateTokens(inputText string, inputAlphabet []string)(bool){
+func validateTokens(inputTokens []string, inputAlphabet []string)(bool){
 
-	for _, c := range inputText {
+	for _, t := range inputTokens {
 
 		exists := false
 		
 		for _, s := range inputAlphabet {
-			if string(c) == s {
+			if string(t) == s {
 				exists = true
 			}
 		}
