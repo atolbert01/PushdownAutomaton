@@ -23,7 +23,6 @@ func main(){
 
 	pda := new(PdaProcessor)
 	if pda.Open(string(jsonText)){
-		fmt.Println(pda)
 
 		reader := bufio.NewReader(os.Stdin)
 
