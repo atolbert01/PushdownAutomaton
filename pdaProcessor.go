@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+type Stack []string
+
 // Used as the key in the transition function map.
 type PdaConfig struct {
 	State string // The state the PDA should be in to take the associated transition
@@ -28,16 +30,13 @@ type PdaProcessor struct {
 	AcceptingStates []string `json:"accepting_states"`
 	StartState string `json:"start_state"`
 	Transitions [][]string `json:"transitions"`
-	Eos string `json:"eos"`
+	EosToken string `json:"eos"`
 
 	// Holds the current state.
 	CurrentState string
 
-	// Token at the top of the stack.
-	CurrentTop string
-
 	// The slice is used to hold the tokens.
-	TokenStack []string
+	TokenStack Stack
 
 	// A map that holds the transition functions
 	TransitionMap map[PdaConfig]PdaTransition
@@ -54,7 +53,8 @@ func (pda *PdaProcessor) Open(jsonText string) (bool){
 	// Validate input.	
 	if len(pda.Name) == 0 || len(pda.States) == 0 || len(pda.InputAlphabet) == 0 || 
 	len(pda.StackAlphabet) == 0 || len(pda.AcceptingStates) == 0 || len(pda.StartState) == 0 ||
-	len(pda.Transitions) == 0 || len(pda.Eos) == 0 {
+	len(pda.Transitions) == 0 || len(pda.EosToken) == 0 {
+
 		return false
 	}
 
@@ -67,12 +67,6 @@ func (pda *PdaProcessor) Open(jsonText string) (bool){
 
 		pda.TransitionMap[newConfig] = newTransition
 	}
-
-	for key, value := range pda.TransitionMap {
-		fmt.Println("Key:", key, "Value: ", value)
-	}
-
-
 	return true
 }
 
@@ -82,6 +76,158 @@ func (pda *PdaProcessor) Reset(){
 	pda.TokenStack = []string{}
 }
 
-func (pda *PdaProcessor) Put(token string){
+func (pda *PdaProcessor) Put(token string) (numTransitions int){
 	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	top := pda.CurrentTop()
+	if top == pda.EosToken {
+		top = ""
+	}
+
+	currentConfig := PdaConfig{pda.CurrentState, token, top}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	fmt.Println("Current config: ", currentConfig)
+	if transition, ok := pda.TransitionMap[currentConfig]; ok {
+
+		pda.CurrentState = transition.NextState;
+		
+		// Check if we are pushing a null token
+		if len(transition.PushToken) == 0 {
+
+			// If the top token is not null then pop it.
+			if len(pda.CurrentTop()) != 0 {
+				fmt.Println("POP MUTHAFUCKA!")
+				pda.TokenStack.Pop()
+			}
+			pda.TokenStack.Push(transition.PushToken)
+		} else {
+			fmt.Println("WE HERE!")
+			//pda.TokenStack.Push(token)
+			pda.TokenStack.Push(transition.PushToken)
+		}
+
+		return 1
+
+	} else {
+		fmt.Println("Transition not ok")
+		return 0
+	}
 }
+
+// Checks for the top k tokens in the stack and returns them without removing them.
+func (pda *PdaProcessor) Peek(k int) ([]string) {
+
+	var tokens []string
+
+	if pda.TokenStack.IsEmpty() {
+		return tokens
+	} else {
+		stackSize := len(pda.TokenStack)
+		for i := stackSize - 1; i > stackSize - k - 1; i-- {
+			token := (pda.TokenStack)[i]
+			tokens = append(tokens, token)
+		}
+		return tokens
+	}
+}
+
+// Return the token at the top of the stack.
+func (pda *PdaProcessor) CurrentTop() (string) {
+	if pda.TokenStack.IsEmpty() {
+		return ""
+	} else {
+		return pda.Peek(1)[0]
+	}
+}
+
+func (pda *PdaProcessor) Eos() {
+	fmt.Println("END OF INPUT SEQUENCE")
+	if pda.IsAccepted() {
+		fmt.Println("Input stream is accepted. Language recognized.")
+	} else {
+		fmt.Println("Input stream is rejected.")
+	}
+}
+
+
+func (pda *PdaProcessor) IsAccepted() (bool) {
+
+	for _, s := range pda.AcceptingStates {
+		if pda.CurrentState == s && pda.TokenStack.IsEmpty() {
+			return true
+		}
+	}
+	return false
+}
+/*********************************** BEGIN STACK IMPLEMENTATION ***********************************/
+
+// Find out if the token stack is empty.
+func (s *Stack) IsEmpty() bool {
+	return len(*s) == 0
+}
+
+// Push a new token to the stack.
+func (s *Stack) Push(str string) {
+	*s = append(*s, str)
+}
+
+// Remove and return top token of stack. Return false if stack is empty.
+func (s *Stack) Pop() (string, bool) {
+	if s.IsEmpty() {
+		return "", false
+	} else {
+		index := len(*s) - 1 // Get the index of top stack token.
+		token := (*s)[index] // Index into the slice and obtain the token.
+		*s = (*s)[:index] // Remove it from the stack by slicing it off
+		return token, true
+	}
+}
+
+/************************************ END STACK IMPLEMENTATION ************************************/

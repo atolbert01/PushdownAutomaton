@@ -24,6 +24,15 @@ func main(){
 	pda := new(PdaProcessor)
 	if pda.Open(string(jsonText)){
 
+
+		pda.Reset()
+
+		for key, value := range pda.TransitionMap {
+			fmt.Println("Key:", key, "Value: ", value)
+		}
+
+
+
 		reader := bufio.NewReader(os.Stdin)
 
 		fmt.Println("Enter input text: ")
@@ -33,6 +42,7 @@ func main(){
 		
 		// Loop until validateTokens returns true.
 		for !validateTokens(inputTokens, pda.InputAlphabet) {
+
 			fmt.Println("Error: input text invalid. Input must contain only the following: ", 
 				pda.InputAlphabet)
 			fmt.Println("Enter input text: ")
@@ -43,14 +53,31 @@ func main(){
 
 		fmt.Println("SUCCESS! Your input is accepted: ", inputTokens)
 
+		// Add the '$' token to signify the end of the input stream
+		inputTokens = append(inputTokens, "$")
+
 		// Iterate over all input tokens. First, check the current state, input token and top token 
 		// then determine whether we can take a transition. If we can make a transition WITHOUT
 		// consuming a token, then we will do that. Otherwise we consume a token and make the
 		// appropriate transition.
-		for _, t := range inputTokens {
-			fmt.Println(t)
-		}
+		i := 0
+		for ok := true; ok; ok = inputTokens[i] != pda.EosToken {
 
+			fmt.Println(inputTokens[i])
+
+			// First see if a transition can be taken without consuming an input token.
+			numTrans := pda.Put("")
+
+			// If not, then consume input token.
+			if numTrans == 0 { 
+				numTrans = pda.Put(inputTokens[i])
+				i++
+			}
+
+			fmt.Println("Number of transitions: ", numTrans)
+		}
+		// We reached the Eos Token so now call Eos()
+		pda.Eos()
 	} else {
 		fmt.Println("Error: could not open json spec")
 	}
@@ -59,6 +86,7 @@ func main(){
 // Calls panic if it detects an error.
 func check(e error){
 	if e != nil{
+		
 		panic(e)
 	}
 }
