@@ -77,88 +77,41 @@ func (pda *PdaProcessor) Reset(){
 }
 
 func (pda *PdaProcessor) Put(token string) (numTransitions int){
-	
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	numTransitions = 0
 
 	top := pda.CurrentTop()
-	if top == pda.EosToken {
-		top = ""
-	}
 
 	currentConfig := PdaConfig{pda.CurrentState, token, top}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	//var transition PdaTransition
 	fmt.Println("Current config: ", currentConfig)
 	if transition, ok := pda.TransitionMap[currentConfig]; ok {
 
 		pda.CurrentState = transition.NextState;
-		
+
 		// Check if we are pushing a null token
 		if len(transition.PushToken) == 0 {
-
+			
 			// If the top token is not null then pop it.
 			if len(pda.CurrentTop()) != 0 {
-				fmt.Println("POP MUTHAFUCKA!")
+				
 				pda.TokenStack.Pop()
 			}
-			pda.TokenStack.Push(transition.PushToken)
+			//pda.TokenStack.Push(transition.PushToken)
 		} else {
-			fmt.Println("WE HERE!")
-			//pda.TokenStack.Push(token)
 			pda.TokenStack.Push(transition.PushToken)
 		}
 
-		return 1
-
-	} else {
-		fmt.Println("Transition not ok")
-		return 0
+		numTransitions++
 	}
+
+	if numTransitions == 0 && len(token) > 0 {
+		pda.TokenStack.Push(token)
+	}
+
+
+	return numTransitions
 }
 
 // Checks for the top k tokens in the stack and returns them without removing them.
@@ -170,7 +123,8 @@ func (pda *PdaProcessor) Peek(k int) ([]string) {
 		return tokens
 	} else {
 		stackSize := len(pda.TokenStack)
-		for i := stackSize - 1; i > stackSize - k - 1; i-- {
+
+		for i := stackSize - 1; i >= stackSize - k; i-- {
 			token := (pda.TokenStack)[i]
 			tokens = append(tokens, token)
 		}
@@ -188,12 +142,24 @@ func (pda *PdaProcessor) CurrentTop() (string) {
 }
 
 func (pda *PdaProcessor) Eos() {
-	fmt.Println("END OF INPUT SEQUENCE")
-	if pda.IsAccepted() {
-		fmt.Println("Input stream is accepted. Language recognized.")
-	} else {
-		fmt.Println("Input stream is rejected.")
+	
+	for _, s := range pda.AcceptingStates {
+
+		// We are in an accepting state.
+		if pda.CurrentState == s {
+			// Are we att the end of the stack?
+			if pda.CurrentTop() == pda.EosToken {
+				pda.TokenStack.Pop()
+			}
+			// Is the stack empty?
+			if pda.TokenStack.IsEmpty() {
+				fmt.Println("Input stream is accepted. Language recognized.")
+				return
+			}
+		}
 	}
+
+	fmt.Println("Error: Invalid input stream, input rejected. The language is not recognized.")
 }
 
 

@@ -23,21 +23,15 @@ func main(){
 
 	pda := new(PdaProcessor)
 	if pda.Open(string(jsonText)){
-
-
+		
 		pda.Reset()
-
-		for key, value := range pda.TransitionMap {
-			fmt.Println("Key:", key, "Value: ", value)
-		}
-
-
 
 		reader := bufio.NewReader(os.Stdin)
 
 		fmt.Println("Enter input text: ")
 
 		inputText, _ := reader.ReadString('\n')
+
 		inputTokens := strings.Split(strings.Replace(inputText, string('\n'), "", -1), " ")
 		
 		// Loop until validateTokens returns true.
@@ -48,22 +42,23 @@ func main(){
 			fmt.Println("Enter input text: ")
 			
 			inputText, _ = reader.ReadString('\n')
+
 			inputTokens = strings.Split(strings.Replace(inputText, string('\n'), "", -1), " ")
 		}
 
 		fmt.Println("SUCCESS! Your input is accepted: ", inputTokens)
 
 		// Add the '$' token to signify the end of the input stream
-		inputTokens = append(inputTokens, "$")
+		inputTokens = append(inputTokens, pda.EosToken)
 
 		// Iterate over all input tokens. First, check the current state, input token and top token 
 		// then determine whether we can take a transition. If we can make a transition WITHOUT
 		// consuming a token, then we will do that. Otherwise we consume a token and make the
 		// appropriate transition.
 		i := 0
-		for ok := true; ok; ok = inputTokens[i] != pda.EosToken {
+		for ok := true; ok; ok = i < len(inputTokens) {
 
-			fmt.Println(inputTokens[i])
+			fmt.Println("Input Token: ", inputTokens[i])
 
 			// First see if a transition can be taken without consuming an input token.
 			numTrans := pda.Put("")
@@ -74,7 +69,10 @@ func main(){
 				i++
 			}
 
+			
 			fmt.Println("Number of transitions: ", numTrans)
+			fmt.Println("Stack Size: ", len(pda.TokenStack))
+			fmt.Println()
 		}
 		// We reached the Eos Token so now call Eos()
 		pda.Eos()
