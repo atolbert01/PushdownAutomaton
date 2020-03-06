@@ -13,7 +13,7 @@ import (
 func main(){
 	// Check to make sure the user has provided a path for the json spec.
 	if len(os.Args) < 2{
-		fmt.Println("Error: command-line args must include json spec file path")
+		fmt.Println("Error: pdaDriver.main() - command-line args must include json spec file path")
 		os.Exit(0)
 	}
 	jsonFilename := string(os.Args[1])
@@ -23,22 +23,34 @@ func main(){
 
 	pda := new(PdaProcessor)
 	if pda.Open(string(jsonText)){
-		
+
 		pda.Reset()
 
 		reader := bufio.NewReader(os.Stdin)
 
-		fmt.Println("Enter input text: ")
+		inputText := ""
 
-		inputText, _ := reader.ReadString('\n')
+		// The user passed in input as a file
+		if len(os.Args) > 2 {
+			commandFilename := string(os.Args[2])
+			commandText, err := ioutil.ReadFile(commandFilename)
+			check(err)
+
+			inputText = string(commandText)
+		} else {
+
+			fmt.Println("Enter input text: ")
+
+			inputText, _ = reader.ReadString('\n')
+		}
 
 		inputTokens := strings.Split(strings.Replace(inputText, string('\n'), "", -1), " ")
-		
+			
 		// Loop until validateTokens returns true.
 		for !validateTokens(inputTokens, pda.InputAlphabet) {
 
-			fmt.Println("Error: input text invalid. Input must contain only the following: ", 
-				pda.InputAlphabet)
+			fmt.Println("Error: " + pda.Name + ", pdaDriver.main() - input text invalid. " + 
+				"Input must contain only the following: ", pda.InputAlphabet)
 			fmt.Println("Enter input text: ")
 			
 			inputText, _ = reader.ReadString('\n')
@@ -46,7 +58,7 @@ func main(){
 			inputTokens = strings.Split(strings.Replace(inputText, string('\n'), "", -1), " ")
 		}
 
-		fmt.Println("SUCCESS! Your input is accepted: ", inputTokens)
+		fmt.Println("Your input is valid: ", inputTokens)
 
 		// Add the '$' token to signify the end of the input stream
 		inputTokens = append(inputTokens, pda.EosToken)
@@ -55,6 +67,7 @@ func main(){
 		// then determine whether we can take a transition. If we can make a transition WITHOUT
 		// consuming a token, then we will do that. Otherwise we consume a token and make the
 		// appropriate transition.
+		numberTransitions := 0
 		i := 0
 		for ok := true; ok; ok = i < len(inputTokens) {
 
@@ -69,16 +82,19 @@ func main(){
 				i++
 			}
 
-			
+			numberTransitions += numTrans
 			fmt.Println("Number of transitions: ", numTrans)
 			fmt.Println("Stack Size: ", len(pda.TokenStack))
 			fmt.Println()
 		}
 		// We reached the Eos Token so now call Eos()
 		pda.Eos()
+		fmt.Println("Total transitions: ", numberTransitions)
+		fmt.Println("\n\n")
 	} else {
-		fmt.Println("Error: could not open json spec")
+		fmt.Println("Error: " + pda.Name + ", pdaDriver.main() - could not open json spec")
 	}
+	close()
 }
 
 // Calls panic if it detects an error.
@@ -106,4 +122,9 @@ func validateTokens(inputTokens []string, inputAlphabet []string)(bool){
 		}
 	}
 	return true
+}
+
+// Clears garbage.
+func close() {
+	// The garbage is collected
 }

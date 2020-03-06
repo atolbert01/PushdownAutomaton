@@ -1,0 +1,7 @@
+#!/bin/bash
+
+./proj0 helloPda.json hello-accepted1
+./proj0 helloPda.json hello-rejected1
+./proj0 directionPda.json direction-accepted1
+./proj0 directionPda.json direction-rejected1
+./proj0 directionPda.json direction-rejected2

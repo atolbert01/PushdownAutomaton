@@ -153,13 +153,14 @@ func (pda *PdaProcessor) Eos() {
 			}
 			// Is the stack empty?
 			if pda.TokenStack.IsEmpty() {
-				fmt.Println("Input stream is accepted. Language recognized.")
+				fmt.Println("Input stream is accepted. Language recognized.\n")
 				return
 			}
 		}
 	}
 
-	fmt.Println("Error: Invalid input stream, input rejected. The language is not recognized.")
+	fmt.Println("Error: " + pda.Name + ", Eos() - " + " Invalid input stream, input rejected. " +
+	"The language is not recognized.\n")
 }
 
 
@@ -172,6 +173,7 @@ func (pda *PdaProcessor) IsAccepted() (bool) {
 	}
 	return false
 }
+
 /*********************************** BEGIN STACK IMPLEMENTATION ***********************************/
 
 // Find out if the token stack is empty.
