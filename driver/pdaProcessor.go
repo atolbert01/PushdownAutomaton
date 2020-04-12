@@ -1,0 +1,278 @@
+package main
+
+import (
+	//"encoding/json"
+	"fmt"
+)
+
+//type Stack []string
+
+// Used as the key in the transition function map.
+type PdaConfig struct {
+	State string // The state the PDA should be in to take the associated transition
+	InputToken string // The input token required to take the associated transition
+	TopToken string // The token that should be on the token top to take the associated transition
+}
+
+// Used as the value in the transition function map.
+type PdaTransition struct {
+	NextState string // The state the PDA should transition to if it is in the required config.
+	PushToken string // The token that should be pushed to the stack if this transition is taken.
+}
+
+// Defines the type PdaProcessor.
+type PdaProcessor struct {
+
+	// The Id is used for indexing purposes when querying the database.
+	Id int `json:"id"`
+
+	// Note: field names must begin with a capital in order to be recognized by the JSON Marshaller
+	Name string `json:"name"`
+	States []string `json:"states"`
+	InputAlphabet []string `json:"input_alphabet"`
+	StackAlphabet []string `json:"stack_alphabet"`
+	AcceptingStates []string `json:"accepting_states"`
+	StartState string `json:"start_state"`
+	Transitions [][]string `json:"transitions"`
+	EosToken string `json:"eos"`
+
+	// Holds the current state.
+	CurrentState string `json:"current_state"`
+
+	// The slice is used to hold the tokens.
+	//TokenStack Stack 
+	TokenStack []string `json:"token_stack"`
+
+	// Holds the position value of the last put token.
+	LastPutPosition int `json:"last_put_position"`
+	
+	// Holds input tokens in order of their position.
+	TokenMap map[int]string
+
+	// A map that holds the transition functions
+	//TransitionMap map[PdaConfig]PdaTransition
+
+}
+
+// Checks pda to make sure it has been initialized properly.
+func (pda *PdaProcessor) IsValid()(bool){
+	// Validate input.	
+	if len(pda.Name) == 0 || len(pda.States) == 0 || len(pda.InputAlphabet) == 0 || 
+	len(pda.StackAlphabet) == 0 || len(pda.AcceptingStates) == 0 || len(pda.StartState) == 0 ||
+	len(pda.Transitions) == 0 || len(pda.EosToken) == 0 {
+
+		return false
+	}
+	return true
+}
+
+// Find the appropriate transition given a PdaConfig as input.
+func (pda *PdaProcessor) FindTransition(config PdaConfig) (PdaTransition){
+	for _, t := range pda.Transitions {
+
+		if config.State == t[0] && config.InputToken == t[1] && config.TopToken == t[2] {
+			return PdaTransition{t[3], t[4]}
+		}
+	}
+	return PdaTransition{}
+}
+
+
+func (pda *PdaProcessor) NextQueuedPosition() (nextPosition int) {
+	//var currentPosition := len(pda.TokenMap)
+	nextPosition = len(pda.TokenMap)
+
+	for position, _ := range pda.TokenMap {
+		if position < nextPosition {
+			nextPosition = position
+		}
+	}
+	return nextPosition
+}
+
+// Sets the CurrentState to StartState and assigns TokenStack a new empty slice
+func (pda *PdaProcessor) Reset(){
+	pda.CurrentState = pda.StartState
+	pda.TokenStack = []string{}
+	pda.TokenMap = make(map[int]string)
+	pda.LastPutPosition = -1
+}
+
+func (pda *PdaProcessor) Put(position int, newToken string) (numTransitions int){
+
+	// First add the new token to the map. If this is a fresh Put call, then the token does not
+	// currently exist in out map.
+	pda.TokenMap[position] = newToken
+
+	numTransitions = pda.ExecutePut()
+	
+	return numTransitions
+}
+
+func (pda *PdaProcessor) ExecutePut() (numTransitions int){
+	// Now get the next token in the map.
+	nextPosition := pda.NextQueuedPosition()
+	token := pda.TokenMap[nextPosition]
+
+	// Compare the next queued token position to the position of the most recently Put token.
+	// If the nextPosition is one more than the last put token, or equal then we will put this token
+	// Otherwise we will wait for the next Put. nextPosition and LastPutPosition will be equal if we
+	// get position zero on the first Put.
+	if nextPosition == pda.LastPutPosition + 1 /*|| nextPosition == pda.LastPutPosition */{
+
+		top := pda.CurrentTop()
+
+		currentConfig := PdaConfig{pda.CurrentState, token, top}
+
+		fmt.Println("Current config: ", currentConfig)
+		//if transition, ok := pda.TransitionMap[currentConfig]; ok {
+		transition := pda.FindTransition(currentConfig)
+		if (PdaTransition{}) != transition {
+			pda.CurrentState = transition.NextState;
+
+			// Check if we are pushing a null token
+			if len(transition.PushToken) == 0 {
+				
+				// If the top token is not null then pop it.
+				if len(pda.CurrentTop()) != 0 {
+					
+					//pda.TokenStack.Pop()
+					pda.Pop()
+				}
+				//pda.TokenStack.Push(transition.PushToken)
+			} else {
+				//pda.TokenStack.Push(transition.PushToken)
+
+				pda.Push(transition.PushToken)
+
+
+				//pda.TokenMap[position] = token
+			}
+
+			numTransitions++
+		} /*else {
+			panic("No transition found for the current PDA configuration")
+		}*/
+		
+		if numTransitions == 0 && len(token) > 0 {
+			//pda.TokenStack.Push(token)
+			pda.Push(token)
+		}
+
+		// If nothing went wrong then update the LastPutPosition
+		pda.LastPutPosition = nextPosition
+
+		// Check to see if we can make another Put with the map.
+		numTransitions = pda.ExecutePut()
+	}
+	return numTransitions
+}
+
+// Checks for the top k tokens in the stack and returns them without removing them.
+func (pda *PdaProcessor) Peek(k int) ([]string) {
+
+	var tokens []string
+
+	if pda.IsEmpty()/*pda.TokenStack.IsEmpty()*/ {
+		return tokens
+	} else {
+		stackSize := len(pda.TokenStack)
+
+		for i := stackSize - 1; i >= stackSize - k; i-- {
+			token := (pda.TokenStack)[i]
+			tokens = append(tokens, token)
+		}
+		return tokens
+	}
+}
+
+// Return the token at the top of the stack.
+func (pda *PdaProcessor) CurrentTop() (string) {
+	if pda.IsEmpty()/*pda.TokenStack.IsEmpty()*/ {
+		return ""
+	} else {
+		return pda.Peek(1)[0]
+	}
+}
+
+func (pda *PdaProcessor) Eos() {
+	
+	for _, s := range pda.AcceptingStates {
+
+		// We are in an accepting state.
+		if pda.CurrentState == s {
+			// Are we att the end of the stack?
+			if pda.CurrentTop() == pda.EosToken {
+				//pda.TokenStack.Pop()
+				pda.Pop()
+			}
+			// Is the stack empty?
+			if pda.IsEmpty()/*pda.TokenStack.IsEmpty()*/ {
+				fmt.Println("Input stream is accepted. Language recognized.\n")
+				return
+			}
+		}
+	}
+
+	fmt.Println("Error: " + pda.Name + ", Eos() - " + " Invalid input stream, input rejected. " +
+	"The language is not recognized.\n")
+}
+
+
+func (pda *PdaProcessor) IsAccepted() (bool) {
+
+	for _, s := range pda.AcceptingStates {
+		if pda.CurrentState == s && pda.IsEmpty()/*pda.TokenStack.IsEmpty()*/ {
+			return true
+		}
+	}
+	return false
+}
+
+/*********************************** BEGIN STACK IMPLEMENTATION ***********************************/
+
+// Find out if the token stack is empty.
+func (pda *PdaProcessor)IsEmpty() bool {
+	return len(pda.TokenStack) == 0
+}
+
+// Push a new token to the stack.
+func (pda *PdaProcessor)Push(str string) {
+	pda.TokenStack = append(pda.TokenStack, str)
+}
+
+// Remove and return top token of stack. Return false if stack is empty.
+func (pda *PdaProcessor) Pop() (string, bool) {
+	if pda.IsEmpty() {
+		return "", false
+	} else {
+		index := len(pda.TokenStack) - 1 // Get the index of top stack token.
+		token := (pda.TokenStack)[index] // Index into the slice and obtain the token.
+		pda.TokenStack = (pda.TokenStack)[:index] // Remove it from the stack by slicing it off
+		return token, true
+	}
+}
+
+/*// Find out if the token stack is empty.
+func (s *Stack) IsEmpty() bool {
+	return len(*s) == 0
+}
+
+// Push a new token to the stack.
+func (s *Stack) Push(str string) {
+	*s = append(*s, str)
+}
+
+// Remove and return top token of stack. Return false if stack is empty.
+func (s *Stack) Pop() (string, bool) {
+	if s.IsEmpty() {
+		return "", false
+	} else {
+		index := len(*s) - 1 // Get the index of top stack token.
+		token := (*s)[index] // Index into the slice and obtain the token.
+		*s = (*s)[:index] // Remove it from the stack by slicing it off
+		return token, true
+	}
+}*/
+
+/************************************ END STACK IMPLEMENTATION ************************************/
