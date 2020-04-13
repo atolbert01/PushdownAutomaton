@@ -1,0 +1,97 @@
+/**************************************** ./proj1 (server) ****************************************/
+
+Listening on port 8080...
+2020/04/12 22:47:05 PUT /pdas/0 CreatePda       131.295µs
+2020/04/12 22:47:05 PUT /pdas/1 CreatePda       38.216µs
+2020/04/12 22:47:05 PUT /pdas/3 CreatePda       36.103µs
+2020/04/12 22:47:05 GET /pdas   ShowPdas        2.671µs
+{3 AlohaPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q2 [0 0 1 1] -1 map[]}
+{3 AlohaPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
+2020/04/12 22:47:05 PUT /pdas/3/reset   ResetPda        45.089µs
+Token presented:  0
+Current config:  {q1  }
+Transition found:  {q2 $}
+Current config:  {q2 0 $}
+2020/04/12 22:47:05 PUT /pdas/0/tokens/0        PresentToken    26.06µs
+Token presented:  1
+Current config:  {q2  0}
+2020/04/12 22:47:05 PUT /pdas/0/tokens/2        PresentToken    18.865µs
+Token presented:  1
+Current config:  {q2  0}
+2020/04/12 22:47:05 PUT /pdas/0/tokens/3        PresentToken    19.924µs
+2020/04/12 22:47:05 GET /pdas/0/stack/len       GetLen  1.542µs
+2020/04/12 22:47:05 GET /pdas/0/stack/top/2     GetPeek 2.311µs
+2020/04/12 22:47:05 GET /pdas/0/state   GetState        1.317µs
+2020/04/12 22:47:05 GET /pdas/0/tokens  GetQueue        3.158µs
+2020/04/12 22:47:05 GET /pdas/0/snapshot/2      Snapshot        20.993µs
+Token presented:  0
+Current config:  {q2  0}
+Current config:  {q2 0 0}
+Current config:  {q2 1 0}
+Transition found:  {q3 }
+Current config:  {q3 1 0}
+Transition found:  {q3 }
+2020/04/12 22:47:05 PUT /pdas/0/tokens/1        PresentToken    31.197µs
+2020/04/12 22:47:05 GET /pdas/0/is_accepted     GetIsAccepted   1.565µs
+Current config:  {q3  $}
+Transition found:  {q4 }
+2020/04/12 22:47:05 http: superfluous response.WriteHeader call from main.PutEos (handlers.go:169)
+2020/04/12 22:47:05 PUT /pdas/0/eos/3   PutEos  21.163µs
+2020/04/12 22:47:05 GET /pdas/0/is_accepted     GetIsAccepted   1.428µs
+2020/04/12 22:47:05 DELETE      /pdas/0/delete  DeletePda       1.992µs
+
+/**************************************** ./driver (client) ***************************************/
+
+Create new pda with id 0 - 
+{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
+
+Create new pda with id 1 - 
+{1 GoodbyePDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
+
+Create new pda with id 3 - 
+{3 AlohaPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
+
+Get list of pdas - 
+AlohaPDA HelloPDA GoodbyePDA 
+
+Reset pda with id 3 - 
+{3 AlohaPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
+
+Present token 0 with position 0 to PDA 0 - 
+{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q2 [$ 0] 0 map[0:0]}
+
+Present token 1 with position 2 to PDA 0 - 
+{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q2 [$ 0] 0 map[0:0 2:1]}
+
+Present token 1 with position 3 to PDA 0 - 
+{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q2 [$ 0] 0 map[0:0 2:1 3:1]}
+
+Send len to PDA 0 - 
+HelloPDA stack size: 2
+
+Send peek(2) to PDA 0 - 
+HelloPDA top 2 elements: 0 $ 
+
+Send state to PDA 0 - 
+HelloPDA current state: q2
+
+Send /tokens to PDA 0 - 
+HelloPDA queued tokens:  0 1 1 
+
+Get snapshot of PDA 0 with top 2 elements - 
+{q2 [ 0 1 1] [0 $]}
+
+Present token 0 with position 1 to PDA 0 - 
+{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q3 [$] 3 map[0:0 1:0 2:1 3:1]}
+
+Send is_accepted to PDA 0 - 
+False: HelloPDA not in accepting state: q3
+
+Send EOS to PDA 0 after position 3 - 
+Input stream is accepted. Language recognized.
+
+Send is_accepted to PDA 0 - 
+True: HelloPDA is in accepting state: q4
+
+Send delete() to PDA 0 - 
+HelloPDA deleted. Remaining pdas: GoodbyePDA AlohaPDA
