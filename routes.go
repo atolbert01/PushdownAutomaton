@@ -101,7 +101,7 @@ var routes = Routes {
 		GetQueue,
 	},
 
-	// base/pdas/{id}/snapshot/{k}: Retrun a JSON message (array) with 3 components:
+	// base/pdas/{id}/snapshot/{k}: Return a JSON message (array) with 3 components:
 	// 	1. current_state()
 	// 	2. queued_tokens()
 	// 	3. peek(k)
@@ -127,4 +127,98 @@ var routes = Routes {
 		"/pdas/{id}/delete",
 		DeletePda,
 	},
+
+	/********************************* BEGIN REPLICA GROUP ROUTES *********************************/
+	
+	// http://localhost:8080/replica_pdas: Return a list of ids of replica groups currently defined.
+	Route{
+		"GetGroupIds",
+		"GET",
+		"/replica_pdas",
+		GetGroupIds,
+	},
+
+	// http://localhost:8080/replica_pdas/gid: Define a new replica group.
+	//
+	// Expects two request parameters: 
+	//		(1) pda_code: gives the specification used to create the pdas
+	//		(2) group_members: gives the group member pda addresses.
+	//
+	// Create/replace the group members as needed. 
+	Route{
+		"InitGroup",
+		"PUT",
+		"/replica_pdas/{gid}",
+		InitGroup,
+	},
+
+	// http://localhost:8080/replica_pdas/gid/reset: For each pda in the group, reset.
+	Route{
+		"ResetGroup",
+		"PUT",
+		"/replica_pdas/{gid}/reset",
+		ResetGroup,
+	},
+
+	// http://localhost:8080/replica_pdas/gid/members: Return a JSON array with the addresses of the
+	// members in the given group.
+	Route{
+		"GetGroupMembers",
+		"GET",
+		"/replica_pdas/{gid}/members",
+		GetGroupMembers,
+	},
+
+	// http://localhost:8080/replica_pdas/gid/connect: Return the address of a random group member 
+	// that a client could connect to.
+	Route{
+		"GetConnectMemberId",
+		"GET",
+		"/replica_pdas/{gid}/connect",
+		GetConnectMemberId,
+	},
+
+	// http://localhost:8080/replica_pdas/gid/close: Close the pdas of all group members.
+	Route{
+		"CloseGroup",
+		"PUT",
+		"/replica_pdas/{gid}/close",
+		CloseGroup,
+	},
+
+	// http://localhost:8080/replica_pdas/gid/delete: Delete the replica group and all its members.
+	Route{
+		"DeleteGroup",
+		"DELETE",
+		"/replica_pdas/{gid}/delete",
+		DeleteGroup,
+	},
+
+	// http://localhost:8080/pdas/id/join: Join the pda with the given id to the replica group with 
+	// group address provided as a request parameter (replica_group).
+	Route{
+		"PdaJoinGroup",
+		"PUT",
+		"/pdas/{id}/join",
+		PdaJoinGroup,
+	},
+
+	// http://localhost:8080/pdas/id/code: Return the JSON specification of the pda with given id.
+	Route{
+		"GetPdaCode",
+		"GET",
+		"/pdas/{id}/code",
+		GetPdaCode,
+	},
+
+	// http://localhost:8080/pdas/id/c3state: Return JSON message with the state information 
+	// maintained to support client-centric consistency.
+	Route{
+		"GetPdaStateInfo",
+		"GET",
+		"/pdas/{id}/c3state",
+		GetPdaStateInfo,
+	},
+
+	/********************************** END REPLICA GROUP ROUTES **********************************/
 }

@@ -8,6 +8,9 @@ import(
 	"html"
 	"net/http"
 	"strconv"
+	"strings"
+	//"mime"
+	//"mime/multipart"
 	"github.com/gorilla/mux"
 )
 
@@ -352,3 +355,142 @@ func DeletePda(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(pda.Name + " deleted. Remaining pdas: " + pdaNames))
 
 }
+
+/********************************** BEGIN REPLICA GROUP HANDLERS **********************************/
+
+// Handles GET requests for http://localhost:8080/replica_pdas: Return a list of ids of replica 
+// groups currently defined.
+func GetGroupIds(w http.ResponseWriter, r *http.Request) {
+	results := RepoGetGroupIds()
+	resultsText := ""
+	
+	for _, result := range results {
+		resultsText += strconv.Itoa(result) + " "
+	}
+
+	fmt.Println("GIDs: ", resultsText)
+
+	w.Write([]byte("Currently defined replica groups: " + resultsText))
+}
+
+// Handles PUT requests for http://localhost:8080/replica_pdas/gid: Define a new replica group.
+//
+// Expects two request parameters: 
+//		(1) pda_code: gives the specification used to create the pdas
+//		(2) group_members: gives the group member pda addresses.
+//
+// Create/replace the group members as needed. 
+func InitGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var gid, _ = strconv.Atoi(vars["gid"])
+
+	var pda PdaProcessor
+
+	// Try to parse the request
+	parseErr := r.ParseMultipartForm(32 << 20) // Max memory is 32 MB
+	if parseErr != nil {
+		http.Error(w, "failed to parse multipart message", http.StatusBadRequest)
+		return
+	}
+
+	if err := json.Unmarshal([]byte(r.FormValue("pda_code")), &pda); err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(422) // Unprocessable entity
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			panic(err)
+		}
+	}
+
+	memberStr := strings.Split(r.FormValue("members"), " ")
+	members := make([]int, len(memberStr))
+	for i := range memberStr {
+		members[i], _ = strconv.Atoi(memberStr[i])
+	}
+
+	// The pda is given an id equal to the gid. This pda is then used as the base pda for all 
+	// future members of the group.
+	pda.Id = gid
+
+	// Reset initializes the pda with starting values.
+	pda.Reset()
+
+	if !pda.IsValid() {
+		panic("PDA not found.")
+	}
+
+	RepoInitGroup(gid, pda, members)
+}
+
+// Handles PUT requests for http://localhost:8080/replica_pdas/gid/reset: For each pda in the group,
+// reset.
+func ResetGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var gid, _ = strconv.Atoi(vars["gid"])
+
+	fmt.Println(gid)
+}
+
+// Handles GET requests for http://localhost:8080/replica_pdas/gid/members: Return a JSON array with
+// the addresses of the members in the given group.
+func GetGroupMembers(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var gid, _ = strconv.Atoi(vars["gid"])
+
+	fmt.Println(gid)
+}
+
+// Handles GET requests for http://localhost:8080/replica_pdas/gid/connect: Return the address of a
+// random group member that a client could connect to.
+func GetConnectMemberId(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var gid, _ = strconv.Atoi(vars["gid"])
+
+	fmt.Println(gid)
+}
+
+// Handles PUT requests for http://localhost:8080/replica_pdas/gid/close: Close the pdas of all
+// group members.
+func CloseGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var gid, _ = strconv.Atoi(vars["gid"])
+
+	fmt.Println(gid)
+}
+
+// Handles DELETE requests for http://localhost:8080/replica_pdas/gid/delete: Delete the replica
+// group and all its members.
+func DeleteGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var gid, _ = strconv.Atoi(vars["gid"])
+
+	fmt.Println(gid)
+}
+
+// Handles PUT requests for http://localhost:8080/pdas/id/join: Join the pda with the given id to 
+// the replica group with group address provided as a request parameter (replica_group).
+func PdaJoinGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var id, _ = strconv.Atoi(vars["id"])
+
+	fmt.Println(id)
+}
+
+// Handles GET requests for http://localhost:8080/pdas/id/code: Return the JSON specification of the
+// pda with given id.
+func GetPdaCode(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var id, _ = strconv.Atoi(vars["id"])
+
+	fmt.Println(id)
+}
+
+// Handles GET requests for http://localhost:8080/pdas/id/c3state: Return JSON message with the
+// state information maintained to support client-centric consistency.
+func GetPdaStateInfo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // Get the variables from the request.
+	var id, _ = strconv.Atoi(vars["id"])
+
+	fmt.Println(id)
+}
+
+/*********************************** END REPLICA GROUP HANDLERS ***********************************/

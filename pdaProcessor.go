@@ -17,8 +17,15 @@ type PdaTransition struct {
 	PushToken string // The token that should be pushed to the stack if this transition is taken.
 }
 
+type PdaCode struct {
+
+}
+
 // Defines the type PdaProcessor.
 type PdaProcessor struct {
+
+	// The replica group ID of this pda processor
+	Gid int
 
 	// The Id is used for indexing purposes when querying the database.
 	Id int `json:"id"`
@@ -42,8 +49,15 @@ type PdaProcessor struct {
 	// Holds the position value of the last put token.
 	LastPutPosition int `json:"last_put_position"`
 	
+	// Holds member ids if passed in with calls to /replica_pdas/gid
+	//Members []int `json:"members"`
+
 	// Holds input tokens in order of their position.
 	TokenMap map[int]string
+
+	// Vector clock which is used to maintain consistency. The ClockMap will be of size N, where N
+	// is the size of the group this pda belongs to.
+	ClockMap map[int]int
 }
 
 // Checks pda to make sure it has been initialized properly.
@@ -252,6 +266,30 @@ func (pda *PdaProcessor) LastQueuedPosition() (lastPosition int) {
 	}
 	return lastPosition
 }
+
+func (pda *PdaProcessor) ResetClock(length int) {
+
+	pda.ClockMap = make(map[int]int, length)
+}
+
+func (pda *PdaProcessor) SetClock(key int, value int) {
+
+	pda.ClockMap[key] = value
+}
+
+
+/*func (pda *PdaProcessor) InitClock(members []int){
+	var length = len(members)
+
+	for m, _ := range members {
+		clock := [length]int
+		ClockMap[m] = clock
+	}
+
+	for i := length; i < length; i++ {
+		clockMap
+	}
+}*/
 
 /*********************************** BEGIN STACK IMPLEMENTATION ***********************************/
 
