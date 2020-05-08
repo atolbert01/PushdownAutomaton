@@ -17,10 +17,6 @@ type PdaTransition struct {
 	PushToken string // The token that should be pushed to the stack if this transition is taken.
 }
 
-type PdaCode struct {
-
-}
-
 // Defines the type PdaProcessor.
 type PdaProcessor struct {
 
@@ -58,6 +54,8 @@ type PdaProcessor struct {
 	// Vector clock which is used to maintain consistency. The ClockMap will be of size N, where N
 	// is the size of the group this pda belongs to.
 	ClockMap map[int]int
+
+	PdaCode string
 }
 
 // Checks pda to make sure it has been initialized properly.

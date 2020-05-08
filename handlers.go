@@ -29,24 +29,24 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello, %q", html.EscapeString(r.URL.Path))
 }
 
-// Handles requests to URL localhost:8080/pdas. Returns list of names of PDAs available at server.
+// Handles requests to URL localhost:8080/pdas. Returns list of ids of PDAs available at server.
 func ShowPdas(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
 	pdas := RepoGetPdas()
 
-	var pdaNames string
+	var pdaIds string
 
 	for _, pda := range pdas {
 		if pda.IsValid() {
-			pdaNames += pda.Name + " "
+			pdaIds += strconv.Itoa(pda.Id) + " "
 		} else {
 			panic("Invalid pda")
 		}
 	}
 
-	w.Write([]byte(pdaNames))
+	w.Write([]byte(pdaIds))
 }
 
 // Handles requests to URL localhost:8080/pdas/{id}. Creates PDA with given id at server.
@@ -73,6 +73,7 @@ func CreatePda(w http.ResponseWriter, r *http.Request) {
 
 	// Make sure the pda is created in the repo with the correct id. This is used for retrieval.
 	pda.Id, _ = strconv.Atoi(id)
+	pda.PdaCode = string(body)
 
 	// Reset initializes the pda with starting values.
 	pda.Reset()
@@ -409,10 +410,6 @@ func InitGroup(w http.ResponseWriter, r *http.Request) {
 		members[i], _ = strconv.Atoi(memberStr[i])
 	}
 
-	// The pda is given an id equal to the gid. This pda is then used as the base pda for all 
-	// future members of the group.
-	pda.Id = gid
-
 	// Reset initializes the pda with starting values.
 	pda.Reset()
 
@@ -420,7 +417,7 @@ func InitGroup(w http.ResponseWriter, r *http.Request) {
 		panic("PDA not found.")
 	}
 
-	RepoInitGroup(gid, pda, members)
+	RepoInitGroup(gid, pda, members, string([]byte(r.FormValue("pda_code"))))
 }
 
 // Handles PUT requests for http://localhost:8080/replica_pdas/gid/reset: For each pda in the group,
@@ -475,19 +472,15 @@ func GetConnectMemberId(w http.ResponseWriter, r *http.Request) {
 	if id == -1 {
 		panic("Error retrieving connect address")
 	}
-	
-	w.Write([]byte("http://localhost:8080/pdas/" + strconv.Itoa(id)))
 
-	fmt.Println(id)
+	w.Write([]byte("http://localhost:8080/pdas/" + strconv.Itoa(id)))
 }
 
 // Handles PUT requests for http://localhost:8080/replica_pdas/gid/close: Close the pdas of all
 // group members.
 func CloseGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
-	var gid, _ = strconv.Atoi(vars["gid"])
-
-	fmt.Println(gid)
+	w.Write([]byte("Group closed: " + vars["gid"]))
 }
 
 // Handles DELETE requests for http://localhost:8080/replica_pdas/gid/delete: Delete the replica
@@ -496,7 +489,12 @@ func DeleteGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var gid, _ = strconv.Atoi(vars["gid"])
 
-	fmt.Println(gid)
+	var msg = "Delete successful: " + vars["gid"]
+	if !RepoDeleteGroup(gid) {
+		msg = "Error during delete: " + vars["gid"]
+	}
+
+	w.Write([]byte(msg))
 }
 
 // Handles PUT requests for http://localhost:8080/pdas/id/join: Join the pda with the given id to 

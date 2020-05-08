@@ -11,15 +11,15 @@ import (
 var replicaGroups map[int]map[int]PdaProcessor//map[int]string
 
 // Stores the base implementation of each pda assigned to a group. The key is the group id.
-var pdaCodes map[int]PdaProcessor
+var pdaCodes map[int]string
 
-// Stores the pdas at a given id.
+// Master list of all pdas currently in existence. Stores the pdas at a given id.
 var	pdas map[int]PdaProcessor
 
 func RepoInit() {
 	pdas = make(map[int]PdaProcessor)
 	replicaGroups = make(map[int]map[int]PdaProcessor)
-	pdaCodes = make(map[int]PdaProcessor)
+	pdaCodes = make(map[int]string)
 }
 
 func RepoCreatePda(pda PdaProcessor) PdaProcessor {
@@ -38,13 +38,19 @@ func RepoGetPdas() map[int]PdaProcessor {
 
 func RepoRemovePda(id int) map[int]PdaProcessor {
 	delete(pdas, id)
+
+	// Also delete this pda from any group it may be a part of.
+	for key, _ := range replicaGroups {
+		delete(replicaGroups[key], id)
+	}
+
 	return pdas
 }
 
 /********************************* BEGIN REPLICA GROUP FUNCTIONS **********************************/
 
-func RepoInitGroup(gid int, pda PdaProcessor, members []int){
-	pdaCodes[gid] = pda // Store the pda code so we can quickly retrieve it later.
+func RepoInitGroup(gid int, pda PdaProcessor, members []int, code string){
+	pdaCodes[gid] = code // Store the pda code so we can quickly retrieve it later.
 	
 	var newGroup = make(map[int]PdaProcessor)
 
@@ -52,15 +58,16 @@ func RepoInitGroup(gid int, pda PdaProcessor, members []int){
 		var newPda = pda
 		newPda.Gid = gid
 		newPda.Id = m
+		newPda.PdaCode = code
+
+		// Add to the newly created group.
 		newGroup[m] = newPda
+
+		// Also add to our master list of pdas.
+		RepoCreatePda(newPda)
 	}
 	replicaGroups[gid] = newGroup
 	InitClocks(gid)
-
-
-	// for _, p := range replicaGroups[gid] {
-	// 	fmt.Println(p)
-	// }
 }
 
 // Function to reset all the clocks in a group to zero.
@@ -113,31 +120,26 @@ func RepoGetRandomMember(gid int) (id int) {
 
 	id = -1
 	rand.Seed(time.Now().Unix()) // Initialize global pseudo random generator
-	
 
-
-
-
-
-
-
-
-
-
-	// NOT WORKING
-
-
-
-
-	idx := rand.Intn(len(replicaGroups[gid]))
-
+	var keys []int
 	for key, _ := range replicaGroups[gid] {
-		if key == replicaGroups[gid][idx].Id {
-			id = key
-		}
+		keys = append(keys, key)
 	}
 
+	id = keys[rand.Intn(len(keys))]
+
 	return id
+}
+
+func RepoDeleteGroup(gid int) (bool) {
+	if _, ok := replicaGroups[gid]; ok {
+		for _, p := range replicaGroups[gid] {
+			RepoRemovePda(p.Id) // Make sure we remove the pda from master list
+		}
+		delete(replicaGroups, gid)
+		return true
+	}
+	return false
 }
 
 /********************************** END REPLICA GROUP FUNCTIONS ***********************************/
