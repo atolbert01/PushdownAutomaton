@@ -34,3 +34,7 @@ type Snap struct {
 	QueuedTokens []string `json:"queued_tokens"`
 	TopTokens []string `json:"top_tokens"`
 }
+
+type GroupMemberAddresses struct {
+	Addresses []string `json:"member_addresses"`
+}

@@ -21,6 +21,10 @@ type Snap struct {
 	TopTokens []string `json:"top_tokens"`
 }
 
+type GroupMemberAddresses struct {
+	Addresses []string `json:"member_addresses"`
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello, %q", html.EscapeString(r.URL.Path))
 }
@@ -284,7 +288,7 @@ func GetQueue(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(pda.Name + " queued tokens: " + combined))
 }
 
-// Handles requests to URL http://localhost:8080/pdas/{id}/snapshot/{k}: Retrun a JSON message 
+// Handles requests to URL http://localhost:8080/pdas/{id}/snapshot/{k}: Return a JSON message 
 // (array) with 3 components:
 // 	1. current_state()
 // 	2. queued_tokens()
@@ -368,8 +372,6 @@ func GetGroupIds(w http.ResponseWriter, r *http.Request) {
 		resultsText += strconv.Itoa(result) + " "
 	}
 
-	fmt.Println("GIDs: ", resultsText)
-
 	w.Write([]byte("Currently defined replica groups: " + resultsText))
 }
 
@@ -427,7 +429,11 @@ func ResetGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var gid, _ = strconv.Atoi(vars["gid"])
 
-	fmt.Println(gid)
+	if !RepoResetGroup(gid){
+		panic(("Error resetting group"))
+	}
+
+	w.Write([]byte(("Group reset")))
 }
 
 // Handles GET requests for http://localhost:8080/replica_pdas/gid/members: Return a JSON array with
@@ -436,7 +442,26 @@ func GetGroupMembers(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var gid, _ = strconv.Atoi(vars["gid"])
 
-	fmt.Println(gid)
+	members := RepoGetGroupMembers(gid)
+
+	if len(members) <= 0 {
+		panic("Error retrieving member addresses")
+	}
+
+	resultsText := ""
+	for _, result := range members {
+		resultsText += ("http://localhost:8080/pdas/" + strconv.Itoa(result) + " ")
+	}
+	
+	addresses := GroupMemberAddresses{
+		strings.Split(resultsText, " "),
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(addresses); err != nil {
+		panic(err)
+	}
+
 }
 
 // Handles GET requests for http://localhost:8080/replica_pdas/gid/connect: Return the address of a
@@ -445,7 +470,15 @@ func GetConnectMemberId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var gid, _ = strconv.Atoi(vars["gid"])
 
-	fmt.Println(gid)
+	id := RepoGetRandomMember(gid)
+
+	if id == -1 {
+		panic("Error retrieving connect address")
+	}
+	
+	w.Write([]byte("http://localhost:8080/pdas/" + strconv.Itoa(id)))
+
+	fmt.Println(id)
 }
 
 // Handles PUT requests for http://localhost:8080/replica_pdas/gid/close: Close the pdas of all

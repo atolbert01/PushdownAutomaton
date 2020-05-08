@@ -277,20 +277,6 @@ func (pda *PdaProcessor) SetClock(key int, value int) {
 	pda.ClockMap[key] = value
 }
 
-
-/*func (pda *PdaProcessor) InitClock(members []int){
-	var length = len(members)
-
-	for m, _ := range members {
-		clock := [length]int
-		ClockMap[m] = clock
-	}
-
-	for i := length; i < length; i++ {
-		clockMap
-	}
-}*/
-
 /*********************************** BEGIN STACK IMPLEMENTATION ***********************************/
 
 // Find out if the token stack is empty.

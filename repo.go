@@ -1,6 +1,9 @@
 package main
 
-//import "fmt"
+import (
+	"math/rand"
+	"time"
+)
 
 // A map which holds all replica groups where the key is the gid and the value is a 
 // map[int]PdaProcessor where the key is the id of the pda and all PdaProcessors share the same
@@ -83,6 +86,58 @@ func RepoGetGroupIds() (gids []int) {
 	}
 
 	return gids
+}
+
+func RepoResetGroup(gid int) (bool) {
+
+	var length = len(replicaGroups[gid])
+
+	for _, p := range replicaGroups[gid] {
+		p.Reset()
+		p.ResetClock(length)
+		replicaGroups[gid][p.Id] = p
+	}
+
+	return true
+}
+
+func RepoGetGroupMembers(gid int) (ids []int) {
+	for _, p := range replicaGroups[gid] {
+		ids = append(ids, p.Id)
+	}
+
+	return ids
+}
+
+func RepoGetRandomMember(gid int) (id int) {
+
+	id = -1
+	rand.Seed(time.Now().Unix()) // Initialize global pseudo random generator
+	
+
+
+
+
+
+
+
+
+
+
+	// NOT WORKING
+
+
+
+
+	idx := rand.Intn(len(replicaGroups[gid]))
+
+	for key, _ := range replicaGroups[gid] {
+		if key == replicaGroups[gid][idx].Id {
+			id = key
+		}
+	}
+
+	return id
 }
 
 /********************************** END REPLICA GROUP FUNCTIONS ***********************************/

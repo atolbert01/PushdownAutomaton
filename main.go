@@ -4,11 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"log"
-	//"os"
-	//"io/ioutil"
-	//"bufio"
-	//"strings"
-	//"github.com/gorilla/mux"
 )
 
 func main() {

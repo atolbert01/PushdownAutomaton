@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"encoding/json"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"bytes"
@@ -147,8 +147,68 @@ func main() {
 
 
 
+	/**************************** Get replica group member addresses ******************************/
 
 
+	fmt.Println()
+	fmt.Println("Return replica group members for gid, 0:")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/members", nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	 var addresses GroupMemberAddresses
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err = json.Unmarshal(body, &addresses); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(addresses)
+
+
+	/*********************************** Get connect address **************************************/
+
+
+	fmt.Println()
+	fmt.Println("Return a random connection address for gid, 0:")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(body))
 
 	/********************************* Create new pda with id 0/ **********************************/
 
