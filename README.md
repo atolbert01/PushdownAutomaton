@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # RESTful PDA Processor
 Author: Aaron Tolbert-Smith
 Date: 04/12/2020
@@ -25,3 +26,23 @@ are completed, but unfortunately ran out of time. So to stop the server, you wil
 process. In the terminal from which ./proj1 was launched, press:
 
 	Ctrl + C
+=======
+# PushdownAutomaton
+Author: Aaron Tolbert-Smith
+Date: 03/05/2020
+Class: CMSC 621 6193 (Spring 2020)
+
+
+To run the PDAs run the provided bash script
+
+	bash run-pda
+
+If you would like to provide input streams from standard input then run proj0 and follow the prompt
+to enter your input:
+
+	./proj0 [pda.json]
+
+You can also run individual input files as follows:
+
+	./proj0 [pda.json] [input file]
+>>>>>>> 22c5eb8e73544bc484934646720b0f63b1d684d4

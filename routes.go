@@ -101,7 +101,7 @@ var routes = Routes {
 		GetQueue,
 	},
 
-	// base/pdas/{id}/snapshot/{k}: Return a JSON message (array) with 3 components:
+	// base/pdas/{id}/snapshot/{k}: Retrun a JSON message (array) with 3 components:
 	// 	1. current_state()
 	// 	2. queued_tokens()
 	// 	3. peek(k)

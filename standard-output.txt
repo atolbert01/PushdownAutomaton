@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /**************************************** ./proj1 (server) ****************************************/
 
 Listening on port 8080...
@@ -95,3 +96,102 @@ True: HelloPDA is in accepting state: q4
 
 Send delete() to PDA 0 - 
 HelloPDA deleted. Remaining pdas: GoodbyePDA AlohaPDA
+=======
+/****************************************** helloPda.json *****************************************/
+
+Your input is valid:  [0 0 1 1]                                                                                                                                                                                                   
+Input Token:  0                                                                                                                                                                                                                   
+Current config:  {q1  }                                                                                                                                                                                                           
+Number of transitions:  1                                                                                                                                                                                                         
+Stack Size:  1                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                  
+Input Token:  0                                                                                                                                                                                                                   
+Current config:  {q2  $}                                                                                                                                                                                                          
+Current config:  {q2 0 $}                                                                                                                                                                                                         
+Number of transitions:  0                                                                                                                                                                                                         
+Stack Size:  2                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                  
+Input Token:  0
+Current config:  {q2  0}
+Current config:  {q2 0 0}
+Number of transitions:  0
+Stack Size:  3
+
+Input Token:  1
+Current config:  {q2  0}
+Current config:  {q2 1 0}
+Number of transitions:  1
+Stack Size:  2
+
+Input Token:  1
+Current config:  {q3  0}
+Current config:  {q3 1 0}
+Number of transitions:  1
+Stack Size:  1
+
+Input Token:  $
+Current config:  {q3  $}
+Number of transitions:  1
+Stack Size:  0
+
+Input Token:  $
+Current config:  {q4  }
+Current config:  {q4 $ }
+Number of transitions:  0
+Stack Size:  1
+
+Input stream is accepted. Language recognized.
+
+Total transitions:  4
+
+
+
+/**************************************** directionPda.json ***************************************/
+
+Your input is valid:  [up down left right]
+Input Token:  up
+Current config:  {q1  }
+Number of transitions:  1
+Stack Size:  1
+
+Input Token:  up
+Current config:  {q2  $}
+Current config:  {q2 up $}
+Number of transitions:  0
+Stack Size:  2
+
+Input Token:  down
+Current config:  {q2  up}
+Current config:  {q2 down up}
+Number of transitions:  1
+Stack Size:  1
+
+Input Token:  left
+Current config:  {q3  $}
+Current config:  {q3 left $}
+Number of transitions:  0
+Stack Size:  2
+
+Input Token:  right
+Current config:  {q3  left}
+Current config:  {q3 right left}
+Number of transitions:  1
+Stack Size:  1
+
+Input Token:  $
+Current config:  {q4  $}
+Number of transitions:  1
+Stack Size:  0
+
+Input Token:  $
+Current config:  {q5  }
+Current config:  {q5 $ }
+Number of transitions:  0
+Stack Size:  1
+
+Input stream is accepted. Language recognized.
+
+Total transitions:  4
+
+
+>>>>>>> 22c5eb8e73544bc484934646720b0f63b1d684d4
