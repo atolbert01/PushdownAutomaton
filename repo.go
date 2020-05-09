@@ -189,4 +189,8 @@ func RepoGetPdaCode(id int) (string) {
 func RepoGetClockMap(id int) (map[int]int) {
 	return pdas[id].ClockMap
 }
+
+func RepoFindConsistentPda(pda PdaProcessor) {
+
+}
 /********************************** END REPLICA GROUP FUNCTIONS ***********************************/

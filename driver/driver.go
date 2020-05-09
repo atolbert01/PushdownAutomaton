@@ -17,7 +17,7 @@ func main() {
 	client := &http.Client{Timeout: time.Second * 10}
 	
 	// This will be updated throughout our interactions with the replica server
-	session_cookie := ""
+	sessionCookie := ""
 
 	// Stores pda id with server response from connect requests
 	connectId := ""
@@ -515,8 +515,8 @@ func main() {
 	}
 
 	// Let's update the session_cookie here that we will send next.
-	session_cookie = string(body)
-	fmt.Println(session_cookie)
+	sessionCookie = string(body)
+	fmt.Println(sessionCookie)
 
 
 	/*********************************** Get connect address **************************************/
@@ -557,7 +557,7 @@ func main() {
 	fmt.Println()
 	fmt.Println()
 	fmt.Println("*******************************************************************************")
-	fmt.Println("Present token 0, position 0, pda 9")
+	fmt.Println("Present token 0, position 0, pda @ connect ID")
 	fmt.Println("*******************************************************************************")
 
 	w = multipart.NewWriter(&b)
@@ -574,7 +574,7 @@ func main() {
 	if fw, err = w.CreateFormField("session_cookie"); err != nil {
 		return
 	}
-	if _, err = io.Copy(fw, strings.NewReader(session_cookie)); err != nil {
+	if _, err = io.Copy(fw, strings.NewReader(sessionCookie)); err != nil {
 		return
 	}
 	w.Close()

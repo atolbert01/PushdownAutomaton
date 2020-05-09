@@ -9,8 +9,6 @@ import(
 	"net/http"
 	"strconv"
 	"strings"
-	//"mime"
-	//"mime/multipart"
 	"github.com/gorilla/mux"
 )
 
@@ -126,32 +124,86 @@ func PresentToken(w http.ResponseWriter, r *http.Request) {
 	var id, _ = strconv.Atoi(vars["id"])
 	var position, _ = strconv.Atoi(vars["position"])
 
-	// Read in the request body.
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-	if err != nil {
-		panic(err)
+
+	// Try to parse the request
+	parseErr := r.ParseMultipartForm(32 << 20) // Max memory is 32 MB
+	if parseErr != nil {
+		http.Error(w, "failed to parse multipart message", http.StatusBadRequest)
+		return
 	}
 
-	var token = string(body)
+	token := r.FormValue("token_value")
+	sessionCookie := r.FormValue("session_cookie")
 
-	fmt.Println("Token presented: ", token)
+	if len(token) < 1 || len(sessionCookie) < 1 {
+		w.WriteHeader(422) // Unprocessable entity
+		panic("Error, could not present token. Invalid request parameters")
+	}
+
+	sessionCookieArr := strings.Split(sessionCookie, " ")
+	clientClock := make(map[int]int) 
+
+	for _, pair := range sessionCookieArr {
+		splitPair := strings.Split(pair, ":")
+		var clockId, _ =  strconv.Atoi(splitPair[0])
+		var clockTimestamp, _ =  strconv.Atoi(splitPair[1])
+		clientClock[clockId] = clockTimestamp
+	}
 
 	var pda PdaProcessor
-
 	pda = RepoFindPda(id)
-
-	if !pda.IsValid() {
-		panic("PDA not found.")
+	if len(pda.ClockMap) > 1 {
+		RepoFindConsistentPda(pda)
 	}
 
-	pda.Put(position, token)
 
-	p := RepoCreatePda(pda)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(p); err != nil {
-		panic(err)
-	}
+
+	// Just so go will freaking build. Stupid syntax.
+	fmt.Println(position)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// // Read in the request body.
+	// body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// var token = string(body)
+
+	// fmt.Println("Token presented: ", token)
+
+	// var pda PdaProcessor
+
+	// pda = RepoFindPda(id)
+
+	// if !pda.IsValid() {
+	// 	panic("PDA not found.")
+	// }
+
+	// pda.Put(position, token)
+
+	// p := RepoCreatePda(pda)
+	// w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	// w.WriteHeader(http.StatusCreated)
+	// if err := json.NewEncoder(w).Encode(p); err != nil {
+	// 	panic(err)
+	// }
 
 }
 
