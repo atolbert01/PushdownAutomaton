@@ -3,6 +3,7 @@ package main
 import (
 	"math/rand"
 	"time"
+	"encoding/json"
 )
 
 // A map which holds all replica groups where the key is the gid and the value is a 
@@ -23,7 +24,9 @@ func RepoInit() {
 }
 
 func RepoCreatePda(pda PdaProcessor) PdaProcessor {
-	pdas[pda.Id] = pda
+	RepoRemovePda(pda.Id) // If a pda with this id already exists in a group or alone, delete it.
+	
+	pdas[pda.Id] = pda // Add the pda to the master list, but no group.
 
 	return pda
 }
@@ -140,6 +143,37 @@ func RepoDeleteGroup(gid int) (bool) {
 		return true
 	}
 	return false
+}
+
+func RepoJoinPda(id int, gid int) (bool) {
+	if _, ok := pdas[id]; ok { // if the pda exists join, else return false
+		
+		pda := pdas[id]
+
+		if _, ok := replicaGroups[gid]; ok { // if the replica group exists, then join
+			
+			jsonData := []byte(pdaCodes[gid])
+
+			if err := json.Unmarshal(jsonData, &pda); err != nil {
+				panic("Could not read pda_code during join")
+			}
+			pda.Id = id
+			pda.Gid = gid
+			pda.PdaCode = pdaCodes[gid]
+			replicaGroups[gid][id] = pda
+			pdas[id] = pda
+		} else { // Create a new group with just this pda in it.
+
+			RepoInitGroup(gid, pda, []int{id}, pda.PdaCode)
+		}
+		return true
+	}
+	return false
+}
+
+func RepoGetPdaCode(id int) (string) {
+	pda := pdas[id]
+	return pda.PdaCode
 }
 
 /********************************** END REPLICA GROUP FUNCTIONS ***********************************/

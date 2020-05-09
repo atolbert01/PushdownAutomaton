@@ -17,10 +17,11 @@ func main() {
 	client := &http.Client{Timeout: time.Second * 10}
 
 	/********************************* Create new replica group ***********************************/
-
 	fmt.Println()
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Create new replica group pda with gid 0, member ids 0, 2, 4, 5: ")
-	
+	fmt.Println("*******************************************************************************")
+
 	jsonText, err := ioutil.ReadFile("helloPda.json")
 
 	var b bytes.Buffer
@@ -68,9 +69,11 @@ func main() {
 
 
 	/********************************* Create new replica group 2 *********************************/
-
 	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Create new replica group pda with gid 2, member ids 1, 3, 6: ")
+	fmt.Println("*******************************************************************************")
 	
 	jsonText, err = ioutil.ReadFile("goodbyePda.json")
 
@@ -119,9 +122,11 @@ func main() {
 
 	/********************************* Get replica group ids ***********************************/
 
-
 	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Return all currently defined replica ids:")
+	fmt.Println("*******************************************************************************")
 
 	// Set the http method, url, and request body
 	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas", nil)
@@ -149,9 +154,11 @@ func main() {
 
 	/**************************** Get replica group member addresses ******************************/
 
-
 	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Return replica group members for gid, 0:")
+	fmt.Println("*******************************************************************************")
 
 	// Set the http method, url, and request body
 	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/members", nil)
@@ -184,9 +191,11 @@ func main() {
 
 	/*********************************** Get connect address **************************************/
 
-
 	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Return a random connection address for gid, 0:")
+	fmt.Println("*******************************************************************************")
 
 	// Set the http method, url, and request body
 	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
@@ -211,11 +220,12 @@ func main() {
 	fmt.Println(string(body))
 
 	/************************* Get list of all pdas, regardless of group **************************/
-		
 	fmt.Println()
-	
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Get list of pdas: ")
-	
+	fmt.Println("*******************************************************************************")
+
 	req, err = http.NewRequest("GET", "http://localhost:8080/pdas", nil)
 	if err != nil {
 		panic(err)
@@ -238,10 +248,11 @@ func main() {
 	fmt.Println(string(body))
 
 	/************************************ Delete group: gid 2 *************************************/
-
 	fmt.Println()
-	
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Delete group 2")
+	fmt.Println("*******************************************************************************")
 
 	// Set the http method, url, and request body
 	req, err = http.NewRequest("DELETE", "http://localhost:8080/replica_pdas/2/delete", nil)
@@ -266,9 +277,11 @@ func main() {
 
 	/********************************** Verify group 2 deleted ************************************/
 
-
 	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Return all currently defined replica ids:")
+	fmt.Println("*******************************************************************************")
 
 	// Set the http method, url, and request body
 	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas", nil)
@@ -294,11 +307,12 @@ func main() {
 
 
 	/************************* Get list of all pdas, regardless of group **************************/
-		
+	fmt.Println()		
 	fmt.Println()
-	
+	fmt.Println("*******************************************************************************")
 	fmt.Println("Get list of pdas: ")
-	
+	fmt.Println("*******************************************************************************")
+
 	req, err = http.NewRequest("GET", "http://localhost:8080/pdas", nil)
 	if err != nil {
 		panic(err)
@@ -321,41 +335,148 @@ func main() {
 	fmt.Println(string(body))
 
 
-	/********************************* Create new pda with id 0/ **********************************/
-
-	// fmt.Println()
+	/********************************* Create new pda with id 9 ***********************************/
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Create new pda with id 9. No group id: ")
+	fmt.Println("*******************************************************************************")
 	
-	// fmt.Println("Create new pda with id 0 - ")
+	jsonText, err = ioutil.ReadFile("directionPda.json")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/9", bytes.NewBuffer(jsonText))
 	
-	// jsonText, err := ioutil.ReadFile("helloPda.json")
+	if err != nil {
+		panic(err)
+	}
 
-	// // Set the http method, url, and request body
-	// req, err := http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/0", bytes.NewBuffer(jsonText))
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	var pda PdaProcessor
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err := json.Unmarshal(body, &pda); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(pda)
+
+
+	/********************************** Join pda id 9 to group 0 **********************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Join pda with id 9 to group 0: ")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/9/join", 
+		strings.NewReader("localhost:8080/replica_pdas/0"))
 	
-	// if err != nil {
-	// 	panic(err)
-	// }
+	if err != nil {
+		panic(err)
+	}
 
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	// resp, err := client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
 
-	// var pda PdaProcessor
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
 
-	// // Read in the response body.
-	// body, err := ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
+	fmt.Println(string(body))
 
-	// if err := json.Unmarshal(body, &pda); err != nil {
-	// 	panic(err)
-	// }
+	/********************** Verify join. Get replica group member addresses ***********************/
 
-	// fmt.Println(pda)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Return replica group members for gid, 0:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/members", nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	var addresses2 GroupMemberAddresses
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err = json.Unmarshal(body, &addresses2); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(addresses2)
+
+
+	/******** Get PDA Code for pda 9. Note: it should have changed since it was created ***********/
+	/******** REMINDER: This is the base spec for the pda, not the pda itself *********************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Get PDA code for PDA 9:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/9/code", nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	var pdaCode PdaProcessor
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err = json.Unmarshal(body, &pdaCode); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(pdaCode)
 
 	// /********************************* Create new pda with id 1/ **********************************/
 

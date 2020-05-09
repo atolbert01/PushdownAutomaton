@@ -3,6 +3,9 @@ package main
 // Defines the type PdaProcessor.
 type PdaProcessor struct {
 
+	// The replica group ID of this pda processor
+	Gid int
+
 	// The Id is used for indexing purposes when querying the database.
 	Id int `json:"id"`
 
@@ -25,8 +28,17 @@ type PdaProcessor struct {
 	// Holds the position value of the last put token.
 	LastPutPosition int `json:"last_put_position"`
 	
+	// Holds member ids if passed in with calls to /replica_pdas/gid
+	//Members []int `json:"members"`
+
 	// Holds input tokens in order of their position.
 	TokenMap map[int]string
+
+	// Vector clock which is used to maintain consistency. The ClockMap will be of size N, where N
+	// is the size of the group this pda belongs to.
+	ClockMap map[int]int
+
+	PdaCode string
 }
 
 type Snap struct {

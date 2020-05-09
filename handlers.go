@@ -503,7 +503,20 @@ func PdaJoinGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var id, _ = strconv.Atoi(vars["id"])
 
-	fmt.Println(id)
+	// Read in the request body.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	tokens := strings.Split(string(body), "/")
+	if len(tokens) < 1 {
+		panic("Error, improper request body. Could not join pda")
+	}
+	gid, _ := strconv.Atoi(tokens[len(tokens) - 1])
+	RepoJoinPda(id, gid) // The last token should be the gid
+
+	w.Write([]byte("Pda successfully joined"))
 }
 
 // Handles GET requests for http://localhost:8080/pdas/id/code: Return the JSON specification of the
@@ -512,7 +525,12 @@ func GetPdaCode(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var id, _ = strconv.Atoi(vars["id"])
 
-	fmt.Println(id)
+	pdaCode := RepoGetPdaCode(id)
+
+	if len(pdaCode) <= 0 {
+		panic("Error, could not retrieve pda code")
+	}
+	w.Write([]byte(pdaCode))
 }
 
 // Handles GET requests for http://localhost:8080/pdas/id/c3state: Return JSON message with the
