@@ -86,6 +86,7 @@ func InitClocks(gid int) {
 			p.SetClock(m.Id, 0) // Set every timestamp in the map to 0
 		}
 		replicaGroups[gid][p.Id] = p
+		pdas[p.Id] = p
 	}
 }
 
@@ -160,6 +161,15 @@ func RepoJoinPda(id int, gid int) (bool) {
 			pda.Id = id
 			pda.Gid = gid
 			pda.PdaCode = pdaCodes[gid]
+
+			pda.ResetClock(len(replicaGroups[gid]))
+			for _, m := range replicaGroups[gid] {
+		
+				pda.SetClock(m.Id, 0) // Set every timestamp in the map to 0
+				m.SetClock(id, 0) // Add the new pda to every clock in the group
+			}
+			pda.SetClock(pda.Id, 0) // Add self to clock map
+
 			replicaGroups[gid][id] = pda
 			pdas[id] = pda
 		} else { // Create a new group with just this pda in it.
@@ -176,4 +186,7 @@ func RepoGetPdaCode(id int) (string) {
 	return pda.PdaCode
 }
 
+func RepoGetClockMap(id int) (map[int]int) {
+	return pdas[id].ClockMap
+}
 /********************************** END REPLICA GROUP FUNCTIONS ***********************************/

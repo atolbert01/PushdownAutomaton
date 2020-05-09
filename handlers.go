@@ -539,7 +539,15 @@ func GetPdaStateInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var id, _ = strconv.Atoi(vars["id"])
 
-	fmt.Println(id)
+	pdaClockMap := RepoGetClockMap(id)
+
+	clockString := ""
+
+	for id, timestamp := range pdaClockMap {
+		clockString += strconv.Itoa(id) + ":" + strconv.Itoa(timestamp) + " "
+	}
+
+	w.Write([]byte(clockString))
 }
 
 /*********************************** END REPLICA GROUP HANDLERS ***********************************/

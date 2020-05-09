@@ -15,6 +15,12 @@ import (
 func main() {
 
 	client := &http.Client{Timeout: time.Second * 10}
+	
+	// This will be updated throughout our interactions with the replica server
+	session_cookie := ""
+
+	// Stores pda id with server response from connect requests
+	connectId := ""
 
 	/********************************* Create new replica group ***********************************/
 	fmt.Println()
@@ -188,36 +194,6 @@ func main() {
 
 	fmt.Println(addresses)
 
-
-	/*********************************** Get connect address **************************************/
-
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("*******************************************************************************")
-	fmt.Println("Return a random connection address for gid, 0:")
-	fmt.Println("*******************************************************************************")
-
-	// Set the http method, url, and request body
-	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
-	
-	if err != nil {
-		panic(err)
-	}
-
-	// Set the request header Content-Type for json
-	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	// Read in the response body.
-	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(string(body))
 
 	/************************* Get list of all pdas, regardless of group **************************/
 	fmt.Println()
@@ -478,73 +454,152 @@ func main() {
 
 	fmt.Println(pdaCode)
 
-	// /********************************* Create new pda with id 1/ **********************************/
 
-	// fmt.Println()
+	/********************************** Get c3 state for pda 9 ************************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Return C3 state info for PDA 9:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/9/c3state", nil)
 	
-	// fmt.Println("Create new pda with id 1 - ")
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(body))
+
+	/********************************** Get c3 state for pda 2 ************************************/
+	/* Note: This check is to ensure that the other pdas in the group were updated after the join */
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Return C3 state info for PDA 2:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/2/c3state", nil)
 	
-	// jsonText, err = ioutil.ReadFile("goodbyePda.json")
+	if err != nil {
+		panic(err)
+	}
 
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/1", bytes.NewBuffer(jsonText))
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	// Let's update the session_cookie here that we will send next.
+	session_cookie = string(body)
+	fmt.Println(session_cookie)
+
+
+	/*********************************** Get connect address **************************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Return a random connection address for gid, 0:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
 	
-	// if err != nil {
-	// 	panic(err)
-	// }
+	if err != nil {
+		panic(err)
+	}
 
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
 
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
 
-	// if err = json.Unmarshal(body, &pda); err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(pda)
-
-	// /********************************* Create new pda with id 3/ **********************************/
-
-	// fmt.Println()
+	connectAddress := strings.Split(string(body), "/")
+	connectId = connectAddress[len(connectAddress) - 1]
 	
-	// fmt.Println("Create new pda with id 3 - ")
+	fmt.Println(string(body))
+
+	/************************ Present token 0, position 0, pda @ connectId ************************/
 	
-	// jsonText, err = ioutil.ReadFile("alohaPda.json")
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Present token 0, position 0, pda 9")
+	fmt.Println("*******************************************************************************")
 
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/3", bytes.NewBuffer(jsonText))
+	w = multipart.NewWriter(&b)
 	
-	// if err != nil {
-	// 	panic(err)
-	// }
+	// First field
+	if fw, err = w.CreateFormField("token_value"); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, strings.NewReader("0")); err != nil {
+		return
+	}
 
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	// Next field
+	if fw, err = w.CreateFormField("session_cookie"); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, strings.NewReader(session_cookie)); err != nil {
+		return
+	}
+	w.Close()
 
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
 
-	// if err = json.Unmarshal(body, &pda); err != nil {
-	// 	panic(err)
-	// }
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, 
+		"http://localhost:8080/pdas/" + connectId + "tokens/0", &b)
+	
+	if err != nil {
+		panic(err)
+	}
 
-	// fmt.Println(pda)
+	// Set the request header Content-Type for FormData
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	// Submit the request
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("bad status:", resp.Status)
+	}
 
 	// /********************************* Check to see if pda exists *********************************/
 	
