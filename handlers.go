@@ -124,7 +124,6 @@ func PresentToken(w http.ResponseWriter, r *http.Request) {
 	var id, _ = strconv.Atoi(vars["id"])
 	var position, _ = strconv.Atoi(vars["position"])
 
-
 	// Try to parse the request
 	parseErr := r.ParseMultipartForm(32 << 20) // Max memory is 32 MB
 	if parseErr != nil {
@@ -140,71 +139,39 @@ func PresentToken(w http.ResponseWriter, r *http.Request) {
 		panic("Error, could not present token. Invalid request parameters")
 	}
 
-	sessionCookieArr := strings.Split(sessionCookie, " ")
+	//clientClock := StringToClockMap(sessionCookie)
 	clientClock := make(map[int]int) 
+	sessionCookieArr := strings.Split(sessionCookie, " ")
 
 	for _, pair := range sessionCookieArr {
-		splitPair := strings.Split(pair, ":")
-		var clockId, _ =  strconv.Atoi(splitPair[0])
-		var clockTimestamp, _ =  strconv.Atoi(splitPair[1])
-		clientClock[clockId] = clockTimestamp
+
+		if(len(pair) > 1) {
+			splitPair := strings.Split(pair, ":")
+			var clockId, _ =  strconv.Atoi(splitPair[0])
+			var clockTimestamp, _ =  strconv.Atoi(splitPair[1])
+			clientClock[clockId] = clockTimestamp
+		}
 	}
 
 	var pda PdaProcessor
 	pda = RepoFindPda(id)
+	var updatedCookie = make(map[int]int)
+	// Is the pda in a group. If so then we need to perform a consistency check.
 	if len(pda.ClockMap) > 1 {
-		RepoFindConsistentPda(pda)
+
+		consistentId := RepoFindConsistentPda(pda, clientClock)
+		updatedCookie = RepoMakeConsistent(pda.Id, consistentId, clientClock)
 	}
 
+	// Finally present the token to pda and rememeber to increment the clock for this id.
+	pda.Put(position, token)
 
+	RepoUpdatePda(pda)
 
-	// Just so go will freaking build. Stupid syntax.
-	fmt.Println(position)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	// // Read in the request body.
-	// body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// var token = string(body)
-
-	// fmt.Println("Token presented: ", token)
-
-	// var pda PdaProcessor
-
-	// pda = RepoFindPda(id)
-
-	// if !pda.IsValid() {
-	// 	panic("PDA not found.")
-	// }
-
-	// pda.Put(position, token)
-
-	// p := RepoCreatePda(pda)
-	// w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	// w.WriteHeader(http.StatusCreated)
-	// if err := json.NewEncoder(w).Encode(p); err != nil {
-	// 	panic(err)
-	// }
-
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+	
+	w.Write([]byte(ClockMapToString(updatedCookie)))
 }
 
 // Handles requests to URL localhost:8080/pdas/{id}/eos/{position}. Call eos() for the given pda 
@@ -593,13 +560,38 @@ func GetPdaStateInfo(w http.ResponseWriter, r *http.Request) {
 
 	pdaClockMap := RepoGetClockMap(id)
 
-	clockString := ""
+	clockString := ClockMapToString(pdaClockMap)
 
-	for id, timestamp := range pdaClockMap {
+	/*for id, timestamp := range pdaClockMap {
 		clockString += strconv.Itoa(id) + ":" + strconv.Itoa(timestamp) + " "
-	}
+	}*/
 
 	w.Write([]byte(clockString))
 }
 
 /*********************************** END REPLICA GROUP HANDLERS ***********************************/
+
+func ClockMapToString(clockMap map[int]int) (clockString string) {
+	for id, timestamp := range clockMap {
+		clockString += strconv.Itoa(id) + ":" + strconv.Itoa(timestamp) + " "
+	}
+	return clockString
+}
+
+func StringToClockMap(clockString string) (clockMap map[int]int) {
+	clockMap = make(map[int]int)
+
+	clockStringArr := strings.Split(clockString, " ")
+
+	for _, pair := range clockStringArr {
+
+		if(len(pair) > 1) {
+			splitPair := strings.Split(pair, ":")
+			var clockId, _ =  strconv.Atoi(splitPair[0])
+			var clockTimestamp, _ =  strconv.Atoi(splitPair[1])
+			clockMap[clockId] = clockTimestamp
+		}
+	}
+
+	return clockMap
+}

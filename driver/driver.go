@@ -582,7 +582,7 @@ func main() {
 
 	// Set the http method, url, and request body
 	req, err = http.NewRequest(http.MethodPut, 
-		"http://localhost:8080/pdas/" + connectId + "tokens/0", &b)
+		"http://localhost:8080/pdas/" + connectId + "/tokens/0", &b)
 	
 	if err != nil {
 		panic(err)
@@ -600,6 +600,358 @@ func main() {
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("bad status:", resp.Status)
 	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie = string(body)
+
+	fmt.Println(sessionCookie)
+
+	/*********************************** Get connect address **************************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Return a random connection address for gid, 0:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	connectAddress = strings.Split(string(body), "/")
+	connectId = connectAddress[len(connectAddress) - 1]
+	
+	fmt.Println(string(body))
+
+	/************************ Present token 1, position 2, pda @ connectId ************************/
+	
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Present token 1, position 2, pda @ connect ID")
+	fmt.Println("*******************************************************************************")
+
+	w = multipart.NewWriter(&b)
+	
+	// First field
+	if fw, err = w.CreateFormField("token_value"); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, strings.NewReader("1")); err != nil {
+		return
+	}
+
+	// Next field
+	if fw, err = w.CreateFormField("session_cookie"); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, strings.NewReader(sessionCookie)); err != nil {
+		return
+	}
+	w.Close()
+
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, 
+		"http://localhost:8080/pdas/" + connectId + "/tokens/2", &b)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for FormData
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	// Submit the request
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("bad status:", resp.Status)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie = string(body)
+
+	fmt.Println(sessionCookie)
+
+	/*********************************** Get connect address **************************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Return a random connection address for gid, 0:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	connectAddress = strings.Split(string(body), "/")
+	connectId = connectAddress[len(connectAddress) - 1]
+	
+	fmt.Println(string(body))
+
+	
+	/************************ Present token 1, position 3, pda @ connectId ************************/
+	
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Present token 1, position 3, pda @ connect ID")
+	fmt.Println("*******************************************************************************")
+
+	w = multipart.NewWriter(&b)
+	
+	// First field
+	if fw, err = w.CreateFormField("token_value"); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, strings.NewReader("1")); err != nil {
+		return
+	}
+
+	// Next field
+	if fw, err = w.CreateFormField("session_cookie"); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, strings.NewReader(sessionCookie)); err != nil {
+		return
+	}
+	w.Close()
+
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, 
+		"http://localhost:8080/pdas/" + connectId + "/tokens/3", &b)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for FormData
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	// Submit the request
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("bad status:", resp.Status)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie = string(body)
+
+	fmt.Println(sessionCookie)
+
+	/*********************************** Get connect address **************************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Return a random connection address for gid, 0:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	connectAddress = strings.Split(string(body), "/")
+	connectId = connectAddress[len(connectAddress) - 1]
+	
+	fmt.Println(string(body))
+
+	
+	/************************ Present token 1, position 3, pda @ connectId ************************/
+	
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Present token 0, position 1, pda @ connect ID")
+	fmt.Println("*******************************************************************************")
+
+	w = multipart.NewWriter(&b)
+	
+	// First field
+	if fw, err = w.CreateFormField("token_value"); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, strings.NewReader("0")); err != nil {
+		return
+	}
+
+	// Next field
+	if fw, err = w.CreateFormField("session_cookie"); err != nil {
+		return
+	}
+	if _, err = io.Copy(fw, strings.NewReader(sessionCookie)); err != nil {
+		return
+	}
+	w.Close()
+
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, 
+		"http://localhost:8080/pdas/" + connectId + "/tokens/1", &b)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for FormData
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	// Submit the request
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("bad status:", resp.Status)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie = string(body)
+
+	fmt.Println(sessionCookie)
+
+	/*********************************** Get connect address **************************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Return a random connection address for gid, 0:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	connectAddress = strings.Split(string(body), "/")
+	connectId = connectAddress[len(connectAddress) - 1]
+	
+	fmt.Println(string(body))
+
+	/************************** Send EOS to connect id after position 3 ***************************/
+
+	/*fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Send EOS to pda @ connect id after position 3:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, 
+		"http://localhost:8080/pdas/" + connectId + "/eos/3", &b)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(body))*/
 
 	// /********************************* Check to see if pda exists *********************************/
 	

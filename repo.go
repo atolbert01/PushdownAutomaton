@@ -187,10 +187,77 @@ func RepoGetPdaCode(id int) (string) {
 }
 
 func RepoGetClockMap(id int) (map[int]int) {
+	/*if len(pdas[id].ClockMap) > 1 {
+
+	} else {
+		return pdas[id].ClockMap
+	}*/
 	return pdas[id].ClockMap
 }
 
-func RepoFindConsistentPda(pda PdaProcessor) {
+func RepoFindConsistentPda(pda PdaProcessor, clientClock map[int]int) (consistentId int) {
+	
+	highest := -1
+	consistentId = -1
+	
+	// Get the highest timestamp
+	for id, ts := range clientClock {
+		if ts >= highest {
+			highest = ts
+			consistentId = id
+		}
+	}
 
+	if highest == 0 {
+		return pda.Id
+	}
+
+	return consistentId
+}
+
+func RepoMakeConsistent(idToUpdate int, consistentId int, clientClock map[int]int) (map[int]int) {
+	
+	pdaToUpdate := pdas[idToUpdate]
+	consistentPda := pdas[consistentId]
+
+	pdaToUpdate.TokenMap = consistentPda.TokenMap
+	pdaToUpdate.LastPutPosition = consistentPda.LastPutPosition
+	pdaToUpdate.TokenStack = consistentPda.TokenStack
+	pdaToUpdate.CurrentState = consistentPda.CurrentState
+
+
+	// THIS DOESN"T WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+	consistentPda.ClockMap[consistentId] += 1
+	consistentPda.ClockMap[idToUpdate] = consistentPda.ClockMap[consistentId] + 1
+
+	pdaToUpdate.ClockMap[idToUpdate] = consistentPda.ClockMap[consistentId] + 1
+
+	return pdaToUpdate.ClockMap
+	/*for id, ts := range clientClock {
+		if ts < pdaToUpdate.ClockMap[id] {
+			clientClock[id] = pdaToUpdate.ClockMap[id]
+		}
+	}
+	consistentPda.ClockMap = pdaToUpdate.ClockMap
+	pdaToUpdate.ClockMap = clientClock
+
+	pdas[consistentId] = consistentPda
+	pdas[idToUpdate] = pdaToUpdate
+
+	replicaGroups[consistentPda.Gid][consistentId] = consistentPda
+	replicaGroups[pdaToUpdate.Gid][idToUpdate] = pdaToUpdate
+
+	return clientClock*/
+}
+
+func RepoUpdatePda(pda PdaProcessor) PdaProcessor {
+	pdas[pda.Id] = pda // Add the pda to the master list, but no group.
+	if (len(pda.ClockMap) > 1) {
+		replicaGroups[pda.Gid][pda.Id] = pda
+	}
+
+	return pda
 }
 /********************************** END REPLICA GROUP FUNCTIONS ***********************************/
