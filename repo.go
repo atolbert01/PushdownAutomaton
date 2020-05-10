@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 	"encoding/json"
+	"fmt"
 )
 
 // A map which holds all replica groups where the key is the gid and the value is a 
@@ -24,7 +25,7 @@ func RepoInit() {
 }
 
 func RepoCreatePda(pda PdaProcessor) PdaProcessor {
-	RepoRemovePda(pda.Id) // If a pda with this id already exists in a group or alone, delete it.
+	//RepoRemovePda(pda.Id) // If a pda with this id already exists in a group or alone, delete it.
 	
 	pdas[pda.Id] = pda // Add the pda to the master list, but no group.
 
@@ -130,7 +131,7 @@ func RepoGetRandomMember(gid int) (id int) {
 		keys = append(keys, key)
 	}
 
-	id = keys[rand.Intn(len(keys))]
+	id = keys[rand.Intn(len(keys) - 1)]
 
 	return id
 }
@@ -146,10 +147,8 @@ func RepoDeleteGroup(gid int) (bool) {
 	return false
 }
 
-func RepoJoinPda(id int, gid int) (bool) {
+func RepoJoinPda(id int, gid int, pda PdaProcessor) (bool) {
 	if _, ok := pdas[id]; ok { // if the pda exists join, else return false
-		
-		pda := pdas[id]
 
 		if _, ok := replicaGroups[gid]; ok { // if the replica group exists, then join
 			
@@ -158,23 +157,35 @@ func RepoJoinPda(id int, gid int) (bool) {
 			if err := json.Unmarshal(jsonData, &pda); err != nil {
 				panic("Could not read pda_code during join")
 			}
-			pda.Id = id
-			pda.Gid = gid
-			pda.PdaCode = pdaCodes[gid]
 
+			pda.Reset()
+			
+			pda.Gid = gid
+			pda.Id = id
+			pda.PdaCode = pdaCodes[gid]
+			
 			pda.ResetClock(len(replicaGroups[gid]))
+			RepoCreatePda(pda)
+			replicaGroups[gid][id] = pda
+
+			// Init Clocks routine			
 			for _, m := range replicaGroups[gid] {
-		
+				
 				pda.SetClock(m.Id, 0) // Set every timestamp in the map to 0
 				m.SetClock(id, 0) // Add the new pda to every clock in the group
+
+				replicaGroups[gid][m.Id] = m
+				pdas[m.Id] = m			
 			}
 			pda.SetClock(pda.Id, 0) // Add self to clock map
 
 			replicaGroups[gid][id] = pda
 			pdas[id] = pda
-		} else { // Create a new group with just this pda in it.
 
-			RepoInitGroup(gid, pda, []int{id}, pda.PdaCode)
+			fmt.Println()
+
+		} else { // Create a new group with just this pda in it.
+			RepoInitGroup(gid, pdas[id], []int{id}, pdas[id].PdaCode)
 		}
 		return true
 	}
@@ -218,6 +229,9 @@ func RepoFindConsistentPda(pda PdaProcessor, clientClock map[int]int) (consisten
 func RepoMakeConsistent(idToUpdate int, consistentId int, clientClock map[int]int) (map[int]int) {
 	
 	pdaToUpdate := pdas[idToUpdate]
+	
+	pdaToUpdate.ClockMap[idToUpdate] = clientClock[consistentId] + 1
+		
 	consistentPda := pdas[consistentId]
 
 	pdaToUpdate.TokenMap = consistentPda.TokenMap
@@ -225,31 +239,14 @@ func RepoMakeConsistent(idToUpdate int, consistentId int, clientClock map[int]in
 	pdaToUpdate.TokenStack = consistentPda.TokenStack
 	pdaToUpdate.CurrentState = consistentPda.CurrentState
 
+	RepoUpdatePda(consistentPda)
 
-	// THIS DOESN"T WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-	consistentPda.ClockMap[consistentId] += 1
-	consistentPda.ClockMap[idToUpdate] = consistentPda.ClockMap[consistentId] + 1
-
-	pdaToUpdate.ClockMap[idToUpdate] = consistentPda.ClockMap[consistentId] + 1
-
-	return pdaToUpdate.ClockMap
-	/*for id, ts := range clientClock {
-		if ts < pdaToUpdate.ClockMap[id] {
-			clientClock[id] = pdaToUpdate.ClockMap[id]
+	for id, ts := range clientClock {
+		if ts > pdaToUpdate.ClockMap[id] {
+			pdaToUpdate.ClockMap[id] = ts
 		}
 	}
-	consistentPda.ClockMap = pdaToUpdate.ClockMap
-	pdaToUpdate.ClockMap = clientClock
-
-	pdas[consistentId] = consistentPda
-	pdas[idToUpdate] = pdaToUpdate
-
-	replicaGroups[consistentPda.Gid][consistentId] = consistentPda
-	replicaGroups[pdaToUpdate.Gid][idToUpdate] = pdaToUpdate
-
-	return clientClock*/
+	return pdaToUpdate.ClockMap
 }
 
 func RepoUpdatePda(pda PdaProcessor) PdaProcessor {

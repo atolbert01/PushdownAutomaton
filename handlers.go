@@ -139,9 +139,9 @@ func PresentToken(w http.ResponseWriter, r *http.Request) {
 		panic("Error, could not present token. Invalid request parameters")
 	}
 
-	//clientClock := StringToClockMap(sessionCookie)
-	clientClock := make(map[int]int) 
-	sessionCookieArr := strings.Split(sessionCookie, " ")
+	clientClock := StringToClockMap(sessionCookie)
+	//clientClock := make(map[int]int) 
+	/*sessionCookieArr := strings.Split(sessionCookie, " ")
 
 	for _, pair := range sessionCookieArr {
 
@@ -151,7 +151,7 @@ func PresentToken(w http.ResponseWriter, r *http.Request) {
 			var clockTimestamp, _ =  strconv.Atoi(splitPair[1])
 			clientClock[clockId] = clockTimestamp
 		}
-	}
+	}*/
 
 	var pda PdaProcessor
 	pda = RepoFindPda(id)
@@ -159,8 +159,31 @@ func PresentToken(w http.ResponseWriter, r *http.Request) {
 	// Is the pda in a group. If so then we need to perform a consistency check.
 	if len(pda.ClockMap) > 1 {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 		consistentId := RepoFindConsistentPda(pda, clientClock)
+
+		fmt.Println("Last updated pda: ", consistentId)
+
 		updatedCookie = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+
+
+
+
+
+
+
 	}
 
 	// Finally present the token to pda and rememeber to increment the clock for this id.
@@ -533,7 +556,9 @@ func PdaJoinGroup(w http.ResponseWriter, r *http.Request) {
 		panic("Error, improper request body. Could not join pda")
 	}
 	gid, _ := strconv.Atoi(tokens[len(tokens) - 1])
-	RepoJoinPda(id, gid) // The last token should be the gid
+	
+	var pda PdaProcessor
+	RepoJoinPda(id, gid, pda) // The last token should be the gid
 
 	w.Write([]byte("Pda successfully joined"))
 }
