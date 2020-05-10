@@ -226,7 +226,7 @@ func RepoFindConsistentPda(pda PdaProcessor, clientClock map[int]int) (consisten
 	return consistentId
 }
 
-func RepoMakeConsistent(idToUpdate int, consistentId int, clientClock map[int]int) (map[int]int) {
+func RepoMakeConsistent(idToUpdate int, consistentId int, clientClock map[int]int) (PdaProcessor) {
 	
 	pdaToUpdate := pdas[idToUpdate]
 	
@@ -246,7 +246,7 @@ func RepoMakeConsistent(idToUpdate int, consistentId int, clientClock map[int]in
 			pdaToUpdate.ClockMap[id] = ts
 		}
 	}
-	return pdaToUpdate.ClockMap
+	return pdaToUpdate
 }
 
 func RepoUpdatePda(pda PdaProcessor) PdaProcessor {

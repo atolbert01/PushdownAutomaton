@@ -157,34 +157,21 @@ func PresentToken(w http.ResponseWriter, r *http.Request) {
 	pda = RepoFindPda(id)
 	var updatedCookie = make(map[int]int)
 	// Is the pda in a group. If so then we need to perform a consistency check.
-	if len(pda.ClockMap) > 1 {
+	// if len(pda.ClockMap) > 1 {
 
+	// 	consistentId := RepoFindConsistentPda(pda, clientClock)
 
+	// 	fmt.Println("Last updated pda: ", consistentId)
 
+	// 	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+	// 	updatedCookie = pda.ClockMap
+	// }
 
-
-
-
-
-
-
-
-
-
-
-		consistentId := RepoFindConsistentPda(pda, clientClock)
-
-		fmt.Println("Last updated pda: ", consistentId)
-
-		updatedCookie = RepoMakeConsistent(pda.Id, consistentId, clientClock)
-
-
-
-
-
-
-
-	}
+	consistentId := RepoFindConsistentPda(pda, clientClock)
+	fmt.Println("Last updated pda: ", consistentId)
+	
+	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+	updatedCookie = pda.ClockMap
 
 	// Finally present the token to pda and rememeber to increment the clock for this id.
 	pda.Put(position, token)
