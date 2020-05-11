@@ -1074,6 +1074,42 @@ func main() {
 		fmt.Println("Success. PDA is in accepted status")
 		fmt.Println(sessionCookie)
 	}
+
+	/*********************************** Get connect address **************************************/
+
+	connectId = GetConnectId(client)
+
+	/********************************** Send reset to connect id *********************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Send reset to pda @ connect id:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/" + connectId + "/reset", 
+		nil)
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie = string(body)
+	fmt.Println(sessionCookie)
 }
 
 func GetConnectId(client *http.Client) (string){

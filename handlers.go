@@ -106,21 +106,31 @@ func ResetPda(w http.ResponseWriter, r *http.Request) {
 	if !pda.IsValid() {
 		panic("PDA not found.")
 	}
-
-	pda.CurrentState = "q2"
-	pda.TokenStack = []string{"0", "0", "1", "1"}
-	fmt.Println(pda)
-
 	pda.Reset()
+	gid := pda.Gid
+	
+	if len(pda.ClockMap) > 1 {
+		pda.ResetClock(len(pda.ClockMap))
+		pdas := RepoGetPdas()
+		var members []int
+		for _, p := range pdas {
+			if p.IsValid() && p.Gid == gid{
+				members = append(members, p.Id)
+			}
+		}
+		RepoInitGroup(gid, pda, members, pda.PdaCode)
 
-	fmt.Println(pda)
+	} else {
+		pda.ResetClock(1)
+		RepoCreatePda(pda)
+	}
 
-	p := RepoCreatePda(pda)
+	// After the pda has been updated (reset), find it again to get the reset cookie
+	pda = RepoFindPda(id)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(p); err != nil {
-		panic(err)
-	}
+	w.Write([]byte(ClockMapToString(pda.ClockMap)))
 }
 
 // Handles requests to URL localhost:8080/pdas/{id}/tokens/{position}. Present a token at the given 
@@ -276,7 +286,7 @@ func GetPeek(w http.ResponseWriter, r *http.Request) {
 	for _, result := range results {
 		combined += result + " "
 	}
-	//fmt.Println(combined)
+	
 	RepoUpdatePda(pda)
 
 	peekResp := PeekResponse{
@@ -685,10 +695,6 @@ func GetPdaStateInfo(w http.ResponseWriter, r *http.Request) {
 	pdaClockMap := RepoGetClockMap(id)
 
 	clockString := ClockMapToString(pdaClockMap)
-
-	/*for id, timestamp := range pdaClockMap {
-		clockString += strconv.Itoa(id) + ":" + strconv.Itoa(timestamp) + " "
-	}*/
 
 	w.Write([]byte(clockString))
 }

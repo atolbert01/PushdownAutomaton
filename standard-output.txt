@@ -1,197 +1,304 @@
-<<<<<<< HEAD
 /**************************************** ./proj1 (server) ****************************************/
-
+                                                                                                                                                                               
 Listening on port 8080...
-2020/04/12 22:47:05 PUT /pdas/0 CreatePda       131.295µs
-2020/04/12 22:47:05 PUT /pdas/1 CreatePda       38.216µs
-2020/04/12 22:47:05 PUT /pdas/3 CreatePda       36.103µs
-2020/04/12 22:47:05 GET /pdas   ShowPdas        2.671µs
-{3 AlohaPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q2 [0 0 1 1] -1 map[]}
-{3 AlohaPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
-2020/04/12 22:47:05 PUT /pdas/3/reset   ResetPda        45.089µs
-Token presented:  0
+2020/05/11 15:28:46 PUT /replica_pdas/0 InitGroup       164.788µs
+2020/05/11 15:28:46 PUT /replica_pdas/2 InitGroup       61.028µs
+2020/05/11 15:28:46 GET /replica_pdas   GetGroupIds     2.298µs
+2020/05/11 15:28:46 GET /replica_pdas/0/members GetGroupMembers 18.149µs
+2020/05/11 15:28:46 GET /pdas   ShowPdas        3.485µs
+2020/05/11 15:28:46 DELETE      /replica_pdas/2/delete  DeleteGroup     3.258µs
+2020/05/11 15:28:46 GET /replica_pdas   GetGroupIds     1.563µs
+2020/05/11 15:28:46 GET /pdas   ShowPdas        2.672µs
+2020/05/11 15:28:46 PUT /pdas/9 CreatePda       56.153µs
+
+2020/05/11 15:28:46 PUT /pdas/9/join    PdaJoinGroup    37.351µs
+2020/05/11 15:28:46 GET /replica_pdas/0/members GetGroupMembers 7.927µs
+2020/05/11 15:28:46 GET /pdas/9/code    GetPdaCode      1.39µs
+2020/05/11 15:28:46 GET /pdas/9/c3state GetPdaStateInfo 2.899µs
+2020/05/11 15:28:46 GET /pdas/2/c3state GetPdaStateInfo 2.47µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      12.066µs
+Last updated pda:  4
 Current config:  {q1  }
 Transition found:  {q2 $}
 Current config:  {q2 0 $}
-2020/04/12 22:47:05 PUT /pdas/0/tokens/0        PresentToken    26.06µs
-Token presented:  1
+2020/05/11 15:28:46 PUT /pdas/4/tokens/0        PresentToken    50.993µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.54µs
+Last updated pda:  4
 Current config:  {q2  0}
-2020/04/12 22:47:05 PUT /pdas/0/tokens/2        PresentToken    18.865µs
-Token presented:  1
+2020/05/11 15:28:46 PUT /pdas/0/tokens/2        PresentToken    44.947µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.676µs
+2020/05/11 15:28:46 GET /pdas/5/snapshot/2      Snapshot        30.147µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.313µs
+Last updated pda:  5
 Current config:  {q2  0}
-2020/04/12 22:47:05 PUT /pdas/0/tokens/3        PresentToken    19.924µs
-2020/04/12 22:47:05 GET /pdas/0/stack/len       GetLen  1.542µs
-2020/04/12 22:47:05 GET /pdas/0/stack/top/2     GetPeek 2.311µs
-2020/04/12 22:47:05 GET /pdas/0/state   GetState        1.317µs
-2020/04/12 22:47:05 GET /pdas/0/tokens  GetQueue        3.158µs
-2020/04/12 22:47:05 GET /pdas/0/snapshot/2      Snapshot        20.993µs
-Token presented:  0
+2020/05/11 15:28:46 PUT /pdas/0/tokens/3        PresentToken    40.077µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.311µs
+2020/05/11 15:28:46 GET /pdas/2/stack/top/2     GetPeek 20.105µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.255µs
+2020/05/11 15:28:46 GET /pdas/4/stack/len       GetLen  10.218µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.083µs
+Last updated pda:  4
 Current config:  {q2  0}
 Current config:  {q2 0 0}
 Current config:  {q2 1 0}
 Transition found:  {q3 }
 Current config:  {q3 1 0}
 Transition found:  {q3 }
-2020/04/12 22:47:05 PUT /pdas/0/tokens/1        PresentToken    31.197µs
-2020/04/12 22:47:05 GET /pdas/0/is_accepted     GetIsAccepted   1.565µs
+2020/05/11 15:28:46 PUT /pdas/0/tokens/1        PresentToken    57.286µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.367µs
+2020/05/11 15:28:46 GET /pdas/0/state   GetState        10.757µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.312µs
+2020/05/11 15:28:46 GET /pdas/5/tokens  GetQueue        12.679µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.146µs
 Current config:  {q3  $}
 Transition found:  {q4 }
-2020/04/12 22:47:05 http: superfluous response.WriteHeader call from main.PutEos (handlers.go:169)
-2020/04/12 22:47:05 PUT /pdas/0/eos/3   PutEos  21.163µs
-2020/04/12 22:47:05 GET /pdas/0/is_accepted     GetIsAccepted   1.428µs
-2020/04/12 22:47:05 DELETE      /pdas/0/delete  DeletePda       1.992µs
+2020/05/11 15:28:46 PUT /pdas/4/eos/3   PutEos  35.603µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.16µs
+2020/05/11 15:28:46 GET /pdas/0/is_accepted     GetIsAccepted   7.795µs
+2020/05/11 15:28:46 GET /replica_pdas/0/connect GetConnectMemberId      11.024µs
+2:0 4:0 5:0 9:0 0:0 
+2020/05/11 15:28:46 PUT /pdas/4/reset   ResetPda        15.19µs
 
 /**************************************** ./driver (client) ***************************************/
 
-Create new pda with id 0 - 
-{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
+*******************************************************************************
+Create new replica group pda with gid 0, member ids 0, 2, 4, 5: 
+*******************************************************************************
 
-Create new pda with id 1 - 
-{1 GoodbyePDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
 
-Create new pda with id 3 - 
-{3 AlohaPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
+*******************************************************************************
+Create new replica group pda with gid 2, member ids 1, 3, 6: 
+*******************************************************************************
 
-Get list of pdas - 
-AlohaPDA HelloPDA GoodbyePDA 
 
-Reset pda with id 3 - 
-{3 AlohaPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q1 [] -1 map[]}
+*******************************************************************************
+Return all currently defined replica ids:
+*******************************************************************************
+Currently defined replica groups: 0 2 
 
-Present token 0 with position 0 to PDA 0 - 
-{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q2 [$ 0] 0 map[0:0]}
 
-Present token 1 with position 2 to PDA 0 - 
-{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q2 [$ 0] 0 map[0:0 2:1]}
+*******************************************************************************
+Return replica group members for gid, 0:
+*******************************************************************************
+{[http://localhost:8080/pdas/4 http://localhost:8080/pdas/5 http://localhost:8080/pdas/0 http://localhost:8080/pdas/2 ]}
 
-Present token 1 with position 3 to PDA 0 - 
-{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q2 [$ 0] 0 map[0:0 2:1 3:1]}
 
-Send len to PDA 0 - 
-HelloPDA stack size: 2
+*******************************************************************************
+Get list of pdas: 
+*******************************************************************************
+5 1 3 6 0 2 4 
 
-Send peek(2) to PDA 0 - 
-HelloPDA top 2 elements: 0 $ 
 
-Send state to PDA 0 - 
-HelloPDA current state: q2
+*******************************************************************************
+Delete group 2
+*******************************************************************************
+Delete successful: 2
 
-Send /tokens to PDA 0 - 
-HelloPDA queued tokens:  0 1 1 
 
-Get snapshot of PDA 0 with top 2 elements - 
-{q2 [ 0 1 1] [0 $]}
+*******************************************************************************
+Return all currently defined replica ids:
+*******************************************************************************
+Currently defined replica groups: 0 
 
-Present token 0 with position 1 to PDA 0 - 
-{0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $ q3 [$] 3 map[0:0 1:0 2:1 3:1]}
 
-Send is_accepted to PDA 0 - 
-False: HelloPDA not in accepting state: q3
+*******************************************************************************
+Get list of pdas: 
+*******************************************************************************
+5 0 2 4 
 
-Send EOS to PDA 0 after position 3 - 
+
+*******************************************************************************
+Create new pda with id 9. No group id: 
+*******************************************************************************
+{0 9 DirectionPDA [q1 q2 q3 q4 q5] [up down left right] [up down left right] [q1 q5] q1 [[q1   q2 $] [q2 down up q3 ] [q3 right left q4 ] [q4  $ q5 ]] $ q1 [] -1 map[] map[] {"name":"DirectionPDA",
+"states":["q1","q2","q3","q4","q5"],
+"input_alphabet":["up","down","left","right"],
+"stack_alphabet":["up","down","left","right"],
+"accepting_states":["q1","q5"],
+"start_state":"q1",
+"transitions":[
+        ["q1",null,null,"q2","$"],
+        ["q2","down","up","q3",null],
+        ["q3","right","left","q4",null],
+        ["q4",null,"$","q5",null]],
+"eos":"$"}}
+
+
+*******************************************************************************
+Join pda with id 9 to group 0: 
+*******************************************************************************
+Pda successfully joined
+
+
+*******************************************************************************
+Return replica group members for gid, 0:
+*******************************************************************************
+{[http://localhost:8080/pdas/4 http://localhost:8080/pdas/5 http://localhost:8080/pdas/9 http://localhost:8080/pdas/0 http://localhost:8080/pdas/2 ]}
+
+
+*******************************************************************************
+Get PDA code for PDA 9:
+*******************************************************************************
+{0 0 HelloPDA [q1 q2 q3 q4] [0 1] [0 1] [q1 q4] q1 [[q1   q2 $] [q2 0  q2 0] [q2 1 0 q3 ] [q3 1 0 q3 ] [q3  $ q4 ]] $  [] 0 map[] map[] }
+
+
+*******************************************************************************
+Return C3 state info for PDA 9:
+*******************************************************************************
+4:0 5:0 9:0 0:0 2:0 
+
+
+*******************************************************************************
+Return C3 state info for PDA 2:
+*******************************************************************************
+5:0 0:0 2:0 9:0 4:0 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/4
+
+
+*******************************************************************************
+Present token 0, position 0, pda @ connect ID
+*******************************************************************************
+4:1 5:0 0:0 2:0 9:0 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/0
+
+
+*******************************************************************************
+Present token 1, position 2, pda @ connect ID
+*******************************************************************************
+0:2 2:0 4:1 5:0 9:0 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/5
+
+
+*******************************************************************************
+Get snapshot of connect id with top 2 elements:
+*******************************************************************************
+{q2 [ 0 1] [0 $] 9:0 5:3 0:2 2:0 4:1 }
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/0
+
+
+*******************************************************************************
+Present token 1, position 3, pda @ connect ID
+*******************************************************************************
+4:1 5:3 9:0 0:4 2:0 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/2
+
+
+*******************************************************************************
+Send peek(2) to pda @ connect id:
+*******************************************************************************
+0 $ 
+2:5 9:0 4:1 5:3 0:4 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/4
+
+
+*******************************************************************************
+Send len to pda @ connect id:
+*******************************************************************************
+2
+4:6 5:3 0:4 2:5 9:0 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/0
+
+
+*******************************************************************************
+Present token 0, position 1, pda @ connect ID
+*******************************************************************************
+0:7 2:5 4:6 5:3 9:0 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/0
+
+
+*******************************************************************************
+Send state to pda @ connect id:
+*******************************************************************************
+HelloPDA current state: q3
+4:6 5:3 9:0 0:8 2:5 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/5
+
+
+*******************************************************************************
+Send /tokens/ to pda @ connect id:
+*******************************************************************************
+HelloPDA queued tokens:  1 1 0 0 
+5:9 0:8 2:5 4:6 9:0 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/4
+
+
+*******************************************************************************
+Send EOS to pda @ connect id after position 3:
+*******************************************************************************
 Input stream is accepted. Language recognized.
-
-Send is_accepted to PDA 0 - 
-True: HelloPDA is in accepting state: q4
-
-Send delete() to PDA 0 - 
-HelloPDA deleted. Remaining pdas: GoodbyePDA AlohaPDA
-=======
-/****************************************** helloPda.json *****************************************/
-
-Your input is valid:  [0 0 1 1]                                                                                                                                                                                                   
-Input Token:  0                                                                                                                                                                                                                   
-Current config:  {q1  }                                                                                                                                                                                                           
-Number of transitions:  1                                                                                                                                                                                                         
-Stack Size:  1                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                  
-Input Token:  0                                                                                                                                                                                                                   
-Current config:  {q2  $}                                                                                                                                                                                                          
-Current config:  {q2 0 $}                                                                                                                                                                                                         
-Number of transitions:  0                                                                                                                                                                                                         
-Stack Size:  2                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                  
-Input Token:  0
-Current config:  {q2  0}
-Current config:  {q2 0 0}
-Number of transitions:  0
-Stack Size:  3
-
-Input Token:  1
-Current config:  {q2  0}
-Current config:  {q2 1 0}
-Number of transitions:  1
-Stack Size:  2
-
-Input Token:  1
-Current config:  {q3  0}
-Current config:  {q3 1 0}
-Number of transitions:  1
-Stack Size:  1
-
-Input Token:  $
-Current config:  {q3  $}
-Number of transitions:  1
-Stack Size:  0
-
-Input Token:  $
-Current config:  {q4  }
-Current config:  {q4 $ }
-Number of transitions:  0
-Stack Size:  1
-
-Input stream is accepted. Language recognized.
-
-Total transitions:  4
+5:9 0:8 2:5 9:0 4:10 
 
 
-
-/**************************************** directionPda.json ***************************************/
-
-Your input is valid:  [up down left right]
-Input Token:  up
-Current config:  {q1  }
-Number of transitions:  1
-Stack Size:  1
-
-Input Token:  up
-Current config:  {q2  $}
-Current config:  {q2 up $}
-Number of transitions:  0
-Stack Size:  2
-
-Input Token:  down
-Current config:  {q2  up}
-Current config:  {q2 down up}
-Number of transitions:  1
-Stack Size:  1
-
-Input Token:  left
-Current config:  {q3  $}
-Current config:  {q3 left $}
-Number of transitions:  0
-Stack Size:  2
-
-Input Token:  right
-Current config:  {q3  left}
-Current config:  {q3 right left}
-Number of transitions:  1
-Stack Size:  1
-
-Input Token:  $
-Current config:  {q4  $}
-Number of transitions:  1
-Stack Size:  0
-
-Input Token:  $
-Current config:  {q5  }
-Current config:  {q5 $ }
-Number of transitions:  0
-Stack Size:  1
-
-Input stream is accepted. Language recognized.
-
-Total transitions:  4
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/0
 
 
->>>>>>> 22c5eb8e73544bc484934646720b0f63b1d684d4
+*******************************************************************************
+Send is_accepted to pda @ connect id:
+*******************************************************************************
+Success. PDA is in accepted status
+0:11 2:5 4:10 5:9 9:0 
+
+
+*******************************************************************************
+Return a random connection address for gid, 0:
+*******************************************************************************
+http://localhost:8080/pdas/4
+
+
+*******************************************************************************
+Send reset to pda @ connect id:
+*******************************************************************************
+0:0 2:0 4:0 5:0 9:0 

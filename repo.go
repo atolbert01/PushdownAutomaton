@@ -198,11 +198,7 @@ func RepoGetPdaCode(id int) (string) {
 }
 
 func RepoGetClockMap(id int) (map[int]int) {
-	/*if len(pdas[id].ClockMap) > 1 {
-
-	} else {
-		return pdas[id].ClockMap
-	}*/
+	
 	return pdas[id].ClockMap
 }
 
