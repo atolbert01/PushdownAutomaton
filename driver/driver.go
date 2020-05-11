@@ -15,7 +15,7 @@ import (
 func main() {
 
 	client := &http.Client{Timeout: time.Second * 10}
-	
+
 	// This will be updated throughout our interactions with the replica server
 	sessionCookie := ""
 
@@ -521,36 +521,7 @@ func main() {
 
 	/*********************************** Get connect address **************************************/
 
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("*******************************************************************************")
-	fmt.Println("Return a random connection address for gid, 0:")
-	fmt.Println("*******************************************************************************")
-
-	// Set the http method, url, and request body
-	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
-	
-	if err != nil {
-		panic(err)
-	}
-
-	// Set the request header Content-Type for json
-	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	// Read in the response body.
-	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	if err != nil {
-		panic(err)
-	}
-
-	connectAddress := strings.Split(string(body), "/")
-	connectId = connectAddress[len(connectAddress) - 1]
-	
-	fmt.Println(string(body))
+	connectId = GetConnectId(client)
 
 	/************************ Present token 0, position 0, pda @ connectId ************************/
 	
@@ -613,36 +584,7 @@ func main() {
 
 	/*********************************** Get connect address **************************************/
 
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("*******************************************************************************")
-	fmt.Println("Return a random connection address for gid, 0:")
-	fmt.Println("*******************************************************************************")
-
-	// Set the http method, url, and request body
-	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
-	
-	if err != nil {
-		panic(err)
-	}
-
-	// Set the request header Content-Type for json
-	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	// Read in the response body.
-	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	if err != nil {
-		panic(err)
-	}
-
-	connectAddress = strings.Split(string(body), "/")
-	connectId = connectAddress[len(connectAddress) - 1]
-	
-	fmt.Println(string(body))
+	connectId = GetConnectId(client)
 
 	/************************ Present token 1, position 2, pda @ connectId ************************/
 	
@@ -705,15 +647,20 @@ func main() {
 
 	/*********************************** Get connect address **************************************/
 
+	connectId = GetConnectId(client)
+	
+	/********************************* Get snapshot of connect id *********************************/
+
 	fmt.Println()
 	fmt.Println()
 	fmt.Println("*******************************************************************************")
-	fmt.Println("Return a random connection address for gid, 0:")
+	fmt.Println("Get snapshot of connect id with top 2 elements:")
 	fmt.Println("*******************************************************************************")
 
 	// Set the http method, url, and request body
-	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
-	
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/" + connectId + "/snapshot/2", 
+		strings.NewReader(sessionCookie))
+
 	if err != nil {
 		panic(err)
 	}
@@ -731,10 +678,18 @@ func main() {
 		panic(err)
 	}
 
-	connectAddress = strings.Split(string(body), "/")
-	connectId = connectAddress[len(connectAddress) - 1]
-	
-	fmt.Println(string(body))
+	var snap Snap
+
+	if err = json.Unmarshal(body, &snap); err != nil {
+		panic(err)
+	}
+
+	sessionCookie = snap.Cookie
+	fmt.Println(snap)
+
+	/*********************************** Get connect address **************************************/
+
+	connectId = GetConnectId(client)
 
 	
 	/************************ Present token 1, position 3, pda @ connectId ************************/
@@ -798,14 +753,62 @@ func main() {
 
 	/*********************************** Get connect address **************************************/
 
+	connectId = GetConnectId(client)
+
+	/********************************* Send peek(2) to connect id *********************************/
+
 	fmt.Println()
 	fmt.Println()
 	fmt.Println("*******************************************************************************")
-	fmt.Println("Return a random connection address for gid, 0:")
+	fmt.Println("Send peek(2) to pda @ connect id:")
+	fmt.Println("*******************************************************************************")
+	
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/" + connectId + "/stack/top/2", 
+		strings.NewReader(sessionCookie))
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	var peekResp PeekResponse
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err = json.Unmarshal(body, &peekResp); err != nil {
+		panic(err)
+	}
+
+	sessionCookie = peekResp.Cookie
+	fmt.Println(peekResp.Tokens)
+	fmt.Println(sessionCookie)
+
+	/*********************************** Get connect address **************************************/
+
+	connectId = GetConnectId(client)
+
+	/*********************************** Send len to connect id ***********************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Send len to pda @ connect id:")
 	fmt.Println("*******************************************************************************")
 
 	// Set the http method, url, and request body
-	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/" + connectId + "/stack/len", 
+		strings.NewReader(sessionCookie))
 	
 	if err != nil {
 		panic(err)
@@ -818,16 +821,26 @@ func main() {
 		panic(err)
 	}
 
+	var lenResp PeekResponse
+
 	// Read in the response body.
 	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
 	if err != nil {
 		panic(err)
 	}
 
-	connectAddress = strings.Split(string(body), "/")
-	connectId = connectAddress[len(connectAddress) - 1]
-	
-	fmt.Println(string(body))
+	if err = json.Unmarshal(body, &lenResp); err != nil {
+		panic(err)
+	}
+
+	sessionCookie = lenResp.Cookie
+	fmt.Println(lenResp.Tokens)
+	fmt.Println(sessionCookie)
+
+
+	/*********************************** Get connect address **************************************/
+
+	connectId = GetConnectId(client)
 
 	
 	/************************ Present token 1, position 3, pda @ connectId ************************/
@@ -891,6 +904,179 @@ func main() {
 
 	/*********************************** Get connect address **************************************/
 
+	connectId = GetConnectId(client)
+
+	/********************************** Send state to connect id **********************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Send state to pda @ connect id:")
+	fmt.Println("*******************************************************************************")
+	
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/" + connectId + "/state", 
+		strings.NewReader(sessionCookie))
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	var stateResp PeekResponse
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err = json.Unmarshal(body, &stateResp); err != nil {
+		panic(err)
+	}
+
+	sessionCookie = stateResp.Cookie
+	fmt.Println(stateResp.Tokens)
+	fmt.Println(sessionCookie)
+
+
+
+	/*********************************** Get connect address **************************************/
+
+	connectId = GetConnectId(client)
+
+	/********************************** Send tokens to connect id *********************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Send /tokens/ to pda @ connect id:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/" + connectId + "/tokens", 
+		strings.NewReader(sessionCookie))
+	
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	var tokensResp PeekResponse
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	if err = json.Unmarshal(body, &tokensResp); err != nil {
+		panic(err)
+	}
+
+	sessionCookie = tokensResp.Cookie
+	fmt.Println(tokensResp.Tokens)
+	fmt.Println(sessionCookie)
+
+
+	/*********************************** Get connect address **************************************/
+
+	connectId = GetConnectId(client)
+
+	/************************** Send EOS to connect id after position 3 ***************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Send EOS to pda @ connect id after position 3:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/" + connectId + "/eos/3", 
+		strings.NewReader(sessionCookie))
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie = string(body)
+
+	if resp.StatusCode != http.StatusCreated {
+		panic("Error, input stream not accepted")
+	} else {
+		fmt.Println("Input stream is accepted. Language recognized.")
+		fmt.Println(sessionCookie)
+	}
+
+	/*********************************** Get connect address **************************************/
+
+	connectId = GetConnectId(client)
+
+	/************************ Send is_accepted to pda @ connect id ****************************/
+
+	fmt.Println()
+	fmt.Println()
+	fmt.Println("*******************************************************************************")
+	fmt.Println("Send is_accepted to pda @ connect id:")
+	fmt.Println("*******************************************************************************")
+
+	// Set the http method, url, and request body
+	req, err = http.NewRequest("GET", "http://localhost:8080/pdas/" + connectId + "/is_accepted", 
+		strings.NewReader(sessionCookie))
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Set the request header Content-Type for json
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// Read in the response body.
+	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie = string(body)
+
+	if resp.StatusCode != http.StatusAccepted {
+		panic("Error, PDA not in accepted status")
+	} else {
+		fmt.Println("Success. PDA is in accepted status")
+		fmt.Println(sessionCookie)
+	}
+}
+
+func GetConnectId(client *http.Client) (string){
 	fmt.Println()
 	fmt.Println()
 	fmt.Println("*******************************************************************************")
@@ -898,7 +1084,7 @@ func main() {
 	fmt.Println("*******************************************************************************")
 
 	// Set the http method, url, and request body
-	req, err = http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
+	req, err := http.NewRequest("GET", "http://localhost:8080/replica_pdas/0/connect", nil)
 	
 	if err != nil {
 		panic(err)
@@ -906,494 +1092,19 @@ func main() {
 
 	// Set the request header Content-Type for json
 	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	resp, err = client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
 	}
 
 	// Read in the response body.
-	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
+	body, err := ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
 	if err != nil {
 		panic(err)
 	}
-
-	connectAddress = strings.Split(string(body), "/")
-	connectId = connectAddress[len(connectAddress) - 1]
 	
 	fmt.Println(string(body))
 
-	/************************** Send EOS to connect id after position 3 ***************************/
-
-	/*fmt.Println()
-	fmt.Println()
-	fmt.Println("*******************************************************************************")
-	fmt.Println("Send EOS to pda @ connect id after position 3:")
-	fmt.Println("*******************************************************************************")
-
-	// Set the http method, url, and request body
-	req, err = http.NewRequest(http.MethodPut, 
-		"http://localhost:8080/pdas/" + connectId + "/eos/3", &b)
-
-	if err != nil {
-		panic(err)
-	}
-
-	// Set the request header Content-Type for json
-	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	// Read in the response body.
-	body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(string(body))*/
-
-	// /********************************* Check to see if pda exists *********************************/
-	
-	// fmt.Println()
-	
-	// fmt.Println("Get list of pdas - ")
-	
-	// req, err = http.NewRequest("GET", "http://localhost:8080/pdas", nil)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// req.Header.Set("Cache-Control","no-cache")
-
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer resp.Body.Close()
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-
-	// /********************************* Reset pda with id 3/ **********************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Reset pda with id 3 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/3/reset", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// //req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// if err = json.Unmarshal(body, &pda); err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(pda)
-
-	// /***************************** Present token 0, position 0 to PDA 0 ****************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Present token 0 with position 0 to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/0/tokens/0", strings.NewReader("0"))
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// if err = json.Unmarshal(body, &pda); err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(pda)
-
-	// /**************************** Present token 1, position 2 to PDA 0 *****************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Present token 1 with position 2 to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/0/tokens/2", strings.NewReader("1"))
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// if err = json.Unmarshal(body, &pda); err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(pda)
-
-	// /**************************** Present token 1, position 3 to PDA 0 *****************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Present token 1 with position 3 to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/0/tokens/3", strings.NewReader("1"))
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// if err = json.Unmarshal(body, &pda); err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(pda)
-
-	// /********************************** Send len to PDA 0 *********************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Send len to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest("GET", "http://localhost:8080/pdas/0/stack/len", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-	// /********************************** Send peek(2) to PDA 0 *********************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Send peek(2) to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest("GET", "http://localhost:8080/pdas/0/stack/top/2", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-
-	// /********************************** Send state to PDA 0 *********************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Send state to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest("GET", "http://localhost:8080/pdas/0/state", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-
-	// /********************************** Send /tokens to PDA 0 *********************************/
-
-	// fmt.Println()
-
-	// fmt.Println("Send /tokens to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest("GET", "http://localhost:8080/pdas/0/tokens", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-
-
-	// /*********************************** Get snapshot of PDA 0 ************************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Get snapshot of PDA 0 with top 2 elements - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest("GET", "http://localhost:8080/pdas/0/snapshot/2", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// var snap Snap
-
-	// if err = json.Unmarshal(body, &snap); err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(snap)
-
-	// /**************************** Present token 0, position 1 to PDA 0 *****************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Present token 0 with position 1 to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/0/tokens/1", strings.NewReader("0"))
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// if err = json.Unmarshal(body, &pda); err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(pda)
-
-	// /********************************** Send is_accepted to PDA 0 *********************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Send is_accepted to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest("GET", "http://localhost:8080/pdas/0/is_accepted", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-
-	// /***************************** Send EOS to PDA 0 after position 3 *****************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Send EOS to PDA 0 after position 3 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest(http.MethodPut, "http://localhost:8080/pdas/0/eos/3", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-
-	// /********************************** Send is_accepted to PDA 0 *********************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Send is_accepted to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest("GET", "http://localhost:8080/pdas/0/is_accepted", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Set the request header Content-Type for json
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
-
-	// /********************************** Send delete() to PDA 0 *********************************/
-
-	// fmt.Println()
-	
-	// fmt.Println("Send delete() to PDA 0 - ")
-
-	// // Set the http method, url, and request body
-	// req, err = http.NewRequest("DELETE", "http://localhost:8080/pdas/0/delete", nil)
-	
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// req.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	// resp, err = client.Do(req)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Read in the response body.
-	// body, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(string(body))
+	connectAddress := strings.Split(string(body), "/")
+	return connectAddress[len(connectAddress) - 1]
 }

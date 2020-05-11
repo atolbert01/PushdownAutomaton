@@ -45,8 +45,14 @@ type Snap struct {
 	CurrentState string `json:"current_state"`
 	QueuedTokens []string `json:"queued_tokens"`
 	TopTokens []string `json:"top_tokens"`
+	Cookie string `json:"cookie"`
 }
 
 type GroupMemberAddresses struct {
 	Addresses []string `json:"member_addresses"`
+}
+
+type PeekResponse struct {
+	Tokens string `json:"tokens"`
+	Cookie string `json:"cookie"`
 }

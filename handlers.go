@@ -17,6 +17,12 @@ type Snap struct {
 	CurrentState string `json:"current_state"`
 	QueuedTokens []string `json:"queued_tokens"`
 	TopTokens []string `json:"top_tokens"`
+	Cookie string `json:"cookie"`
+}
+
+type PeekResponse struct {
+	Tokens string `json:"tokens"`
+	Cookie string `json:"cookie"`
 }
 
 type GroupMemberAddresses struct {
@@ -140,32 +146,11 @@ func PresentToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientClock := StringToClockMap(sessionCookie)
-	//clientClock := make(map[int]int) 
-	/*sessionCookieArr := strings.Split(sessionCookie, " ")
-
-	for _, pair := range sessionCookieArr {
-
-		if(len(pair) > 1) {
-			splitPair := strings.Split(pair, ":")
-			var clockId, _ =  strconv.Atoi(splitPair[0])
-			var clockTimestamp, _ =  strconv.Atoi(splitPair[1])
-			clientClock[clockId] = clockTimestamp
-		}
-	}*/
-
+	
 	var pda PdaProcessor
 	pda = RepoFindPda(id)
 	var updatedCookie = make(map[int]int)
-	// Is the pda in a group. If so then we need to perform a consistency check.
-	// if len(pda.ClockMap) > 1 {
 
-	// 	consistentId := RepoFindConsistentPda(pda, clientClock)
-
-	// 	fmt.Println("Last updated pda: ", consistentId)
-
-	// 	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
-	// 	updatedCookie = pda.ClockMap
-	// }
 
 	consistentId := RepoFindConsistentPda(pda, clientClock)
 	fmt.Println("Last updated pda: ", consistentId)
@@ -190,20 +175,35 @@ func PutEos(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var id, _ = strconv.Atoi(vars["id"])
 	var position, _ = strconv.Atoi(vars["position"])
+	
+	// Read in the request body.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie := string(body)
+
+	clientClock := StringToClockMap(sessionCookie)
 
 	var pda PdaProcessor
-
 	pda = RepoFindPda(id)
-
 	if !pda.IsValid() {
 		panic("PDA not found.")
 	}
+	
+	consistentId := RepoFindConsistentPda(pda, clientClock)
+	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+
+	var updatedCookie = make(map[int]int)
+	updatedCookie = pda.ClockMap
 
 	if pda.Eos(position) {
 		// If the EOS is successful then we update the Repo with the EOSd PDA.
-		RepoCreatePda(pda)
-		w.Write([]byte("Input stream is accepted. Language recognized."))
+		//RepoCreatePda(pda)
+		RepoUpdatePda(pda)
 		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(ClockMapToString(updatedCookie)))
 	} else {
 		w.Write([]byte("Error: " + pda.Name + ", Eos() - " + " Invalid input stream, input " + 
 		"rejected. The language is not recognized."))
@@ -215,16 +215,31 @@ func GetIsAccepted(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var id, _ = strconv.Atoi(vars["id"])
 
+	// Read in the request body.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie := string(body)
+	clientClock := StringToClockMap(sessionCookie)
+
 	var pda PdaProcessor
-
 	pda = RepoFindPda(id)
-
 	if !pda.IsValid() {
 		panic("PDA not found.")
 	}
+	
+	consistentId := RepoFindConsistentPda(pda, clientClock)
+	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+
+	var updatedCookie = make(map[int]int)
+	updatedCookie = pda.ClockMap
 
 	if pda.IsAccepted(){
-		w.Write([]byte("True: " + pda.Name + " is in accepting state: " + pda.CurrentState))	
+		RepoUpdatePda(pda)
+		w.WriteHeader(http.StatusAccepted)
+		w.Write([]byte(ClockMapToString(updatedCookie)))
 	} else {
 		w.Write([]byte("False: " + pda.Name + " not in accepting state: " + pda.CurrentState))
 	}
@@ -235,24 +250,43 @@ func GetPeek(w http.ResponseWriter, r *http.Request) {
 	var id, _ = strconv.Atoi(vars["id"])
 	var k, _ = strconv.Atoi(vars["k"])
 
+	// Read in the request body.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie := string(body)
+	clientClock := StringToClockMap(sessionCookie)
+
 	var pda PdaProcessor
-
 	pda = RepoFindPda(id)
-
 	if !pda.IsValid() {
 		panic("PDA not found.")
 	}
+	
+	consistentId := RepoFindConsistentPda(pda, clientClock)
+	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+
+	var updatedCookie = make(map[int]int)
+	updatedCookie = pda.ClockMap
 
 	var results = pda.Peek(k)
 	var combined = ""
 	for _, result := range results {
 		combined += result + " "
 	}
+	//fmt.Println(combined)
+	RepoUpdatePda(pda)
 
-	if (combined == "") {
-		w.Write([]byte(pda.Name + " peek returned no results."))
-	} else {
-		w.Write([]byte(pda.Name + " top " + strconv.Itoa(k) + " elements: " + combined))
+	peekResp := PeekResponse{
+		combined,
+		ClockMapToString(updatedCookie),
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(peekResp); err != nil {
+		panic(err)
 	}
 }
 
@@ -262,17 +296,37 @@ func GetLen(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var id, _ = strconv.Atoi(vars["id"])
 
+	// Read in the request body.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie := string(body)
+	clientClock := StringToClockMap(sessionCookie)
+
 	var pda PdaProcessor
-
 	pda = RepoFindPda(id)
-
 	if !pda.IsValid() {
 		panic("PDA not found.")
 	}
+	
+	consistentId := RepoFindConsistentPda(pda, clientClock)
+	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+	RepoUpdatePda(pda)
 
-	var result = pda.Name + " stack size: " + strconv.Itoa(len(pda.TokenStack))
+	var updatedCookie = make(map[int]int)
+	updatedCookie = pda.ClockMap
 
-	w.Write([]byte(result))
+	result := PeekResponse{
+		strconv.Itoa(len(pda.TokenStack)),
+		ClockMapToString(updatedCookie),
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		panic(err)
+	}
 }
 
 // Handles requests to URL http://localhost:8080/pdas/{id}/state: Call and return the value of 
@@ -281,17 +335,38 @@ func GetState(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var id, _ = strconv.Atoi(vars["id"])
 
+	
+	// Read in the request body.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie := string(body)
+	clientClock := StringToClockMap(sessionCookie)
+
 	var pda PdaProcessor
-
 	pda = RepoFindPda(id)
-
 	if !pda.IsValid() {
 		panic("PDA not found.")
 	}
+	
+	consistentId := RepoFindConsistentPda(pda, clientClock)
+	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+	RepoUpdatePda(pda)
 
-	var result = pda.Name + " current state: " + pda.CurrentState
+	var updatedCookie = make(map[int]int)
+	updatedCookie = pda.ClockMap
 
-	w.Write([]byte(result))
+	result := PeekResponse{
+		pda.Name + " current state: " + pda.CurrentState,
+		ClockMapToString(updatedCookie),
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		panic(err)
+	}
 }
 
 // Handles requests to URL http://localhost:8080/pdas/{id}/tokens: Call and return the value of 
@@ -300,13 +375,27 @@ func GetQueue(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r) // Get the variables from the request.
 	var id, _ = strconv.Atoi(vars["id"])
 
+	// Read in the request body.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie := string(body)
+	clientClock := StringToClockMap(sessionCookie)
+
 	var pda PdaProcessor
-
 	pda = RepoFindPda(id)
-
 	if !pda.IsValid() {
 		panic("PDA not found.")
 	}
+	
+	consistentId := RepoFindConsistentPda(pda, clientClock)
+	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+	RepoUpdatePda(pda)
+
+	var updatedCookie = make(map[int]int)
+	updatedCookie = pda.ClockMap
 
 	var results = pda.QueuedTokens()
 
@@ -315,7 +404,15 @@ func GetQueue(w http.ResponseWriter, r *http.Request) {
 		combined += result + " "
 	}
 
-	w.Write([]byte(pda.Name + " queued tokens: " + combined))
+	queueResp := PeekResponse{
+		pda.Name + " queued tokens: " + combined,
+		ClockMapToString(updatedCookie),
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err := json.NewEncoder(w).Encode(queueResp); err != nil {
+		panic(err)
+	}
 }
 
 // Handles requests to URL http://localhost:8080/pdas/{id}/snapshot/{k}: Return a JSON message 
@@ -328,13 +425,27 @@ func Snapshot(w http.ResponseWriter, r *http.Request) {
 	var id, _ = strconv.Atoi(vars["id"])
 	var k, _ = strconv.Atoi(vars["k"])
 
+	// Read in the request body.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	sessionCookie := string(body)
+	clientClock := StringToClockMap(sessionCookie)
+
 	var pda PdaProcessor
-
 	pda = RepoFindPda(id)
-
 	if !pda.IsValid() {
 		panic("PDA not found.")
 	}
+	
+	consistentId := RepoFindConsistentPda(pda, clientClock)
+	pda = RepoMakeConsistent(pda.Id, consistentId, clientClock)
+	RepoUpdatePda(pda)
+
+	var updatedCookie = make(map[int]int)
+	updatedCookie = pda.ClockMap
 
 	var stateResult = pda.CurrentState
 	var queueResults = pda.QueuedTokens()
@@ -344,6 +455,7 @@ func Snapshot(w http.ResponseWriter, r *http.Request) {
 		stateResult,
 		queueResults,
 		peekResults,
+		ClockMapToString(updatedCookie),
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
